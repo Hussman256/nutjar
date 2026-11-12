@@ -198,7 +198,7 @@ export class CashuBoost extends HTMLElement {
         signer,
         episodeGuid: this.attr('episode'),
         podcastGuid: this.attr('podcast-guid') ?? this.podcastGuid,
-        url: this.attr('url') ?? location.href,
+        url: this.attr('url') ?? (/^https?:/.test(location.href) ? location.href : undefined),
         relays: this.relays(),
       },
       pending,
@@ -299,7 +299,7 @@ export class CashuBoost extends HTMLElement {
       <details ${lines.length > 1 ? 'open' : ''}><summary>Where your ${fmt(this.amount)} sats go</summary><ul class="splits">
         ${lines.map((l) => `<li><span>${esc(l.recipient.name)}${l.recipient.unsupported ? `<br><span class="note">${esc(l.recipient.unsupported)}</span>` : ''}</span>
           <span>${l.rail === 'none' ? '' : fmt(l.amount) + ' sats '}<span class="badge ${l.rail}">${RAIL_LABEL[l.rail]}</span></span></li>`).join('')}
-      </ul>${mint ? `<div class="note" style="padding:0 12px 10px">Mint: ${esc(new URL(mint).host)}</div>` : ''}</details>
+      </ul>${mint ? `<div class="note" style="padding:0 12px 10px">Mint: ${esc(new URL(mint).host)}. Mint and routing fees, if any, come out of the last share.</div>` : ''}</details>
       ${payable ? `<button class="primary" data-act="invoice">Boost ${fmt(this.amount)} sats ⚡</button>
       <div class="row" style="margin-top:8px"><button class="ghost" data-act="token">Pay with ecash instead</button></div>`
       : `<div class="err">None of these recipients can receive Cashu yet.</div>`}

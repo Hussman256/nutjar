@@ -115,20 +115,26 @@ $('btn-connect').addEventListener('click', async () => {
       show('setup');
       return;
     }
-    describe();
-    $('my-snippet').textContent = snippet();
-    await load();
-    watchNutzaps(me, relays, async (z) => {
-      if (zaps.has(z.id)) return;
-      await refreshStates([z]);
-      zaps.set(z.id, z);
-      render();
-    });
+    await start();
   } catch (e) {
     show('connect');
     $('connect-err').textContent = (e as Error).message;
   }
 });
+
+let unwatch: (() => void) | undefined;
+async function start() {
+  describe();
+  $('my-snippet').textContent = snippet();
+  await load();
+  unwatch?.();
+  unwatch = watchNutzaps(me, relays, async (z) => {
+    if (zaps.has(z.id)) return;
+    await refreshStates([z]);
+    zaps.set(z.id, z);
+    render();
+  });
+}
 
 function describe() {
   const mints = info?.mints.map((m) => new URL(m).host).join(', ') ?? 'none';
@@ -168,9 +174,7 @@ $('btn-setup').addEventListener('click', async () => {
     info = parseNutzapInfo(infoEv);
     show('setup', false);
     show('main');
-    describe();
-    $('my-snippet').textContent = snippet();
-    await load();
+    await start();
   } catch (e) {
     $('setup-err').textContent = (e as Error).message;
   }
