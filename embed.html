@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boost Embed Builder</title>
+  <meta name="description" content="Build a Cashu boost button for your podcast, article or page, with Podcasting 2.0 splits.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥜</text></svg>">
+  <link rel="stylesheet" href="/src/site/site.css">
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="./">🥜 Cashu Boost</a>
+      <div class="links">
+        <a href="./">Demo</a>
+        <a href="./embed.html" aria-current="page">Add to your site</a>
+        <a href="./inbox.html">Creator inbox</a>
+      </div>
+    </nav>
+
+    <h1>Add a boost button</h1>
+    <p class="lede">Fill in what you have. The preview is live, so you can test it right here.</p>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Who gets the sats</h3>
+        <label for="mode">Source</label>
+        <select id="mode">
+          <option value="single">Just me (npub and/or lightning address)</option>
+          <option value="feed">My podcast feed (Podcasting 2.0 splits)</option>
+          <option value="request">A NUT-18 payment request</option>
+        </select>
+
+        <div id="m-single">
+          <label for="npub">Nostr npub</label>
+          <input id="npub" placeholder="npub1…">
+          <label for="lnaddress">Lightning address (fallback)</label>
+          <input id="lnaddress" placeholder="you@getalby.com">
+          <p class="small muted">With an npub, boosts arrive as nutzaps. Set up receiving in the <a href="./inbox.html">creator inbox</a>. Without one, they're paid to your lightning address from ecash.</p>
+        </div>
+
+        <div id="m-feed" class="hidden">
+          <label for="feed">RSS feed URL</label>
+          <div class="row"><input id="feed" placeholder="https://feeds.example.com/show.xml" style="flex:1"><button id="btn-feed" class="ghost">Load</button></div>
+          <p id="feed-status" class="small muted"></p>
+          <div id="feed-paste" class="hidden">
+            <label for="xml">…or paste the feed XML</label>
+            <textarea id="xml" class="mono" placeholder="&lt;rss …&gt;"></textarea>
+            <button id="btn-xml" class="ghost" style="margin-top:6px">Use pasted XML</button>
+          </div>
+          <label for="episode">Episode</label>
+          <select id="episode"><option value="">Whole show (channel splits)</option></select>
+          <div id="splits" class="small" style="margin-top:10px"></div>
+        </div>
+
+        <div id="m-request" class="hidden">
+          <label for="creq">Payment request</label>
+          <textarea id="creq" class="mono" placeholder="creqA…"></textarea>
+          <p class="small muted">The boost is POSTed to the request's HTTP endpoint (NUT-18), for example a Sovereigncast instance.</p>
+        </div>
+
+        <h3 style="margin-top:22px">Looks & defaults</h3>
+        <label for="label">Label</label>
+        <input id="label" placeholder="Episode 42: …">
+        <label for="name">Creator name</label>
+        <input id="name" placeholder="My Show">
+        <label for="mint">Mint for Lightning payments</label>
+        <input id="mint" placeholder="Leave empty to use the first mint the creator accepts">
+        <label for="amounts">Amount buttons (sats, comma separated)</label>
+        <input id="amounts" value="21,100,500,2100">
+        <div class="row">
+          <div style="flex:1"><label for="accent">Accent colour</label><input id="accent" type="color" value="#e8742a" style="padding:2px;height:42px"></div>
+          <div style="flex:1"><label for="theme">Theme</label><select id="theme"><option value="">Auto</option><option>light</option><option>dark</option></select></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel"><h3>Preview</h3><div id="preview"></div></div>
+        <div class="panel" style="margin-top:16px">
+          <div class="row" style="justify-content:space-between"><h3>Embed code</h3><button class="ghost" id="btn-copy">Copy</button></div>
+          <pre id="code"></pre>
+        </div>
+      </div>
+    </div>
+
+    <footer><span>Cashu Boost · MIT licensed</span><span>Works anywhere you can paste HTML</span></footer>
+  </div>
+  <script type="module" src="/src/site/embed-page.ts"></script>
+</body>
+</html>

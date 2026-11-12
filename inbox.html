@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Boost Inbox</title>
+  <meta name="description" content="Read and collect the Cashu boosts (nutzaps) your listeners sent you.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥜</text></svg>">
+  <link rel="stylesheet" href="/src/site/site.css">
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="./">🥜 Cashu Boost</a>
+      <div class="links">
+        <a href="./">Demo</a>
+        <a href="./embed.html">Add to your site</a>
+        <a href="./inbox.html" aria-current="page">Creator inbox</a>
+      </div>
+    </nav>
+
+    <h1>Your boosts</h1>
+    <p class="lede">Messages and ecash from your listeners. Sign in with your Nostr browser extension. This page never asks for your private key.</p>
+
+    <section id="connect" class="panel">
+      <h3>Sign in</h3>
+      <p class="muted">Use a NIP-07 extension such as <a href="https://getalby.com" target="_blank" rel="noopener">Alby</a> or <a href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noopener">nos2x</a>. Your keys stay in the extension. Never paste an nsec or seed phrase into any website.</p>
+      <button id="btn-connect">Connect Nostr extension</button>
+      <p id="connect-err" class="err"></p>
+    </section>
+
+    <section id="setup" class="panel hidden" style="margin-top:16px">
+      <h3>Start receiving boosts</h3>
+      <p class="muted">You don't have a nutzap profile yet. This creates a receiving key, saves it encrypted to you on Nostr (a NIP-60 wallet event, which only your extension can decrypt), and publishes which mints you accept (NIP-61). Any NIP-60 wallet can use the same key later.</p>
+      <label for="mints">Mints you accept (one per line)</label>
+      <textarea id="mints">https://mint.minibits.cash/Bitcoin
+https://mint.coinos.io</textarea>
+      <p class="small muted">Only list mints you trust. A mint holds the sats behind the ecash until you collect it. To try things out first, add the test mint <code>https://testnut.cashu.space</code> (fake sats).</p>
+      <label for="relays">Relays (one per line)</label>
+      <textarea id="relays"></textarea>
+      <div class="row" style="margin-top:12px"><button id="btn-setup">Publish my nutzap profile</button></div>
+      <p id="setup-err" class="err"></p>
+    </section>
+
+    <section id="main" class="hidden">
+      <div class="notice" id="status" style="margin-top:16px"></div>
+      <div class="grid2" style="margin-top:16px">
+        <div class="panel">
+          <div class="row" style="justify-content:space-between"><h3>Boosts</h3><button class="ghost" id="btn-refresh">Refresh</button></div>
+          <div id="zaps"><p class="muted">Loading from relays…</p></div>
+        </div>
+        <div>
+          <div class="panel">
+            <h3>Collect</h3>
+            <p class="muted" id="collect-summary">Nothing to collect yet.</p>
+            <button id="btn-collect" disabled>Collect all</button>
+            <p class="small muted">Collecting unlocks the ecash with your key and swaps it for fresh tokens you can paste into any Cashu wallet, or cash out over Lightning below.</p>
+            <p id="collect-err" class="err"></p>
+          </div>
+          <div class="panel hidden" id="collected" style="margin-top:16px">
+            <h3>Collected ecash</h3>
+            <p class="small muted">Saved in this browser until you dismiss it. Copy it to a wallet now.</p>
+            <div id="tokens"></div>
+            <label for="ln">Or send it to your lightning address</label>
+            <div class="row"><input id="ln" placeholder="you@getalby.com" style="flex:1"><button id="btn-melt">Send</button></div>
+            <p id="melt-out" class="small"></p>
+          </div>
+          <div class="panel" style="margin-top:16px">
+            <h3>Your embed code</h3>
+            <pre id="my-snippet"></pre>
+            <p class="small muted">More options in the <a href="./embed.html">embed builder</a>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer><span>Cashu Boost · MIT licensed</span><span>Nutzaps (NIP-61) · NIP-60 key storage · NUT-07 state checks</span></footer>
+  </div>
+  <script type="module" src="/src/site/inbox-page.ts"></script>
+</body>
+</html>

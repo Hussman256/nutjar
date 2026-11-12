@@ -1,0 +1,28 @@
+{
+  "name": "cashu-boost",
+  "version": "1.0.0",
+  "description": "Embeddable Value4Value boost button paid in Cashu ecash, with nutzaps and Podcasting 2.0 splits",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && vite build -c vite.widget.config.ts && node scripts/ascii.mjs dist/cashu-boost.js",
+    "preview": "vite preview",
+    "typecheck": "tsc -p .",
+    "e2e": "vite build --ssr scripts/e2e.ts --outDir .e2e --emptyOutDir && node .e2e/e2e.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@cashu/cashu-ts": "^4.13.1",
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0",
+    "nostr-tools": "^2.26.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}

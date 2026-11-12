@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cashu Boost</title>
+  <meta name="description" content="An embeddable Value4Value boost button paid in Cashu ecash. Listeners send sats with a message; creators receive nutzaps, split the Podcasting 2.0 way.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥜</text></svg>">
+  <link rel="stylesheet" href="/src/site/site.css">
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="./">🥜 Cashu Boost</a>
+      <div class="links">
+        <a href="./" aria-current="page">Demo</a>
+        <a href="./embed.html">Add to your site</a>
+        <a href="./inbox.html">Creator inbox</a>
+        <a href="https://github.com/" id="repo-link" target="_blank" rel="noopener">Source</a>
+      </div>
+    </nav>
+
+    <span class="pill">Nut November · Value4Value</span>
+    <h1>Give value back,<br>with a message attached.</h1>
+    <p class="lede">A boost button for any episode, article or creator page. Listeners send sats and a note, paying with Lightning or Cashu ecash. Creators get the boost as a <b>nutzap</b>, split between host, guest and editor just like the podcast's own feed says.</p>
+
+    <h2>Try it: both sides, right here</h2>
+    <p class="muted">This demo runs on <b>testnut</b>, a Cashu test mint with fake sats. Its invoices pay themselves, so you don't need a wallet. Boost on the left and watch the creators' inbox on the right.</p>
+    <div class="grid2">
+      <div>
+        <cashu-boost id="demo-widget" label="Episode 42: Ecash for creators" name="the Demo Show" mint="https://testnut.cashu.space"></cashu-boost>
+      </div>
+      <div class="panel">
+        <h3>Creators' inbox <small>· live from Nostr relays</small></h3>
+        <p class="small muted" id="demo-who"></p>
+        <div id="demo-zaps"><p class="muted small">No boosts yet. Send one!</p></div>
+        <div class="row" style="margin-top:12px">
+          <button id="demo-collect" disabled>Collect all</button>
+          <span class="small muted" id="demo-total"></span>
+        </div>
+        <div id="demo-out" class="small" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <h2>How it works</h2>
+    <div class="grid3 steps">
+      <div class="panel step"><h3>Listener boosts</h3><p class="muted">Pick an amount and write a message. Pay a Lightning invoice, which a Cashu mint turns into ecash, or paste ecash you already have. No account, no app.</p></div>
+      <div class="panel step"><h3>The boost is split</h3><p class="muted">Recipients come from the feed's <code>&lt;podcast:value&gt;</code> block. Each share is locked to its recipient (P2PK) and published as a NIP-61 nutzap with the message.</p></div>
+      <div class="panel step"><h3>Creators collect</h3><p class="muted">Nutzaps wait on Nostr relays until the creator collects them, in the <a href="./inbox.html">inbox</a> or any NIP-60 wallet. They can keep the ecash or send it to a Lightning address.</p></div>
+    </div>
+
+    <h2>Built for the Podcasting 2.0 world</h2>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Splits, the way the feed says</h3>
+        <p class="muted">Point the widget at an RSS feed and an episode. It reads the <code>podcast:value</code> recipients (item-level overrides channel-level) and finds each one's ecash route:</p>
+        <table>
+          <tr><th>Recipient has</th><th>Their share goes</th></tr>
+          <tr><td>A nutzap profile (kind 10019), via npub or the NIP-05 behind their lightning address</td><td>As a <b>nutzap</b>, locked to their key</td></tr>
+          <tr><td>Only a lightning address</td><td>Over <b>Lightning</b>, paid from ecash (melt) with the message as a LUD-12 comment</td></tr>
+          <tr><td>Only a keysend node</td><td>Skipped (mints can't keysend), and the share is spread over everyone else</td></tr>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>Open standards, no lock-in</h3>
+        <ul class="muted">
+          <li><b>NIP-61 nutzaps</b>: any NIP-60 wallet can collect them, and they match the plan in the Hopp player's wallet design notes (ADR 0005).</li>
+          <li><b>NIP-73 tags</b> (<code>podcast:item:guid</code>, <code>podcast:guid</code>), so any client can tie a boost to its episode.</li>
+          <li><b>NUT-18 payment requests</b>: point the widget at a <code>creqA…</code> and the boost is POSTed straight to the creator's server.</li>
+          <li><b>Nothing custodial.</b> The widget is static files. Sats go from the mint straight to the creators, and any leftover goes back to the listener as a token.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>Add it in two lines</h2>
+    <pre id="snippet"></pre>
+    <p class="muted">Or use the <a href="./embed.html">embed builder</a> to load your feed, pick an episode and copy the code.</p>
+
+    <footer>
+      <span>Cashu Boost · MIT licensed · built for <a href="https://nutnovember.org" target="_blank" rel="noopener">Nut November</a></span>
+      <span>Ecash by <a href="https://cashu.space" target="_blank" rel="noopener">Cashu</a> · Value4Value track by <a href="https://nodesignal.space" target="_blank" rel="noopener">Nodesignal</a></span>
+    </footer>
+  </div>
+  <script type="module" src="/src/site/demo.ts"></script>
+</body>
+</html>
