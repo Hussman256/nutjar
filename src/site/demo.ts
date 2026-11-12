@@ -64,7 +64,7 @@ function render() {
   const who = (z: Nutzap) => creators.find((c) => c.pubkey === z.to)?.name ?? '?';
   $('demo-zaps').innerHTML = list.length
     ? list.map((z) => zapHtml(z, ` <span class="tag">to ${esc(who(z))}</span>`)).join('')
-    : '<p class="muted small">No boosts yet. Send one!</p>';
+    : '<p class="muted small">No boosts yet. Player 1, your move.</p>';
   for (const id of fresh) $('demo-zaps').querySelector(`[data-id="${id}"]`)?.classList.add('flash');
   fresh = new Set();
   const open = list.filter((z) => z.state === 'unclaimed');
@@ -115,3 +115,27 @@ $('demo-collect').addEventListener('click', async () => {
 const origin = location.origin + location.pathname.replace(/[^/]*$/, '');
 $('snippet').textContent = `<script src="${origin}cashu-boost.js" defer></script>
 <cashu-boost npub="npub1yourkey…" lnaddress="you@getalby.com" label="Episode 42"></cashu-boost>`;
+
+// ---------- PRESS START ----------
+const device = document.getElementById('device')!;
+const screenSats = document.getElementById('screen-sats')!;
+document.getElementById('start')!.addEventListener('click', () => {
+  device.classList.add('on');
+  screenSats.classList.remove('hidden');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let n = 0;
+  const target = 2100;
+  const tick = () => {
+    n = Math.min(target, n + Math.ceil((target - n) / 6));
+    screenSats.textContent = `+${n.toLocaleString('en-US')} sats`;
+    if (n < target && !reduce) requestAnimationFrame(tick);
+  };
+  tick();
+  setTimeout(() => document.getElementById('play')!.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }), reduce ? 0 : 700);
+});
+widget.addEventListener('boost', (e) => {
+  const amount = (e as CustomEvent<{ amount: number }>).detail.amount;
+  device.classList.add('on');
+  screenSats.classList.remove('hidden');
+  screenSats.textContent = `+${amount.toLocaleString('en-US')} sats`;
+});

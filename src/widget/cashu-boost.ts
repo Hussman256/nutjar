@@ -1,7 +1,7 @@
 // <cashu-boost> — an embeddable Value4Value boost button paid in Cashu ecash.
 import QRCode from 'qrcode';
 import { getEncodedToken, type Proof, type Wallet } from '@cashu/cashu-ts';
-import { css } from './styles';
+import { arcade, css } from './styles';
 import {
   deliver,
   fundWithInvoice,
@@ -268,7 +268,7 @@ export class CashuBoost extends HTMLElement {
       }
     })();
     const name = this.attr('name') ?? this.recipients[0]?.name ?? 'the creator';
-    this.root.innerHTML = `<style>${css}</style>
+    this.root.innerHTML = `<style>${css}${arcade}</style>
       <div class="card" part="card">
         <div class="head"><div class="nut" aria-hidden="true">🥜</div>
           <div><div class="title">Boost ${esc(name)}</div><div class="sub">${esc(this.label())}</div></div></div>

@@ -6,14 +6,17 @@
   <title>Boost Embed Builder</title>
   <meta name="description" content="Build a Cashu boost button for your podcast, article or page, with Podcasting 2.0 splits.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥜</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&display=swap">
   <link rel="stylesheet" href="/src/site/site.css">
 </head>
 <body>
   <div class="wrap">
     <nav>
-      <a class="brand" href="./">🥜 Cashu Boost</a>
+      <a class="brand" href="./" aria-label="Cashu Boost home"><span class="logo"><span class="nut">🥜</span>Boost</span></a>
       <div class="links">
-        <a href="./">Demo</a>
+        <a href="./">Play</a>
         <a href="./embed.html" aria-current="page">Add to your site</a>
         <a href="./inbox.html">Creator inbox</a>
       </div>
@@ -71,6 +74,7 @@
         <input id="amounts" value="21,100,500,2100">
         <div class="row">
           <div style="flex:1"><label for="accent">Accent colour</label><input id="accent" type="color" value="#e8742a" style="padding:2px;height:42px"></div>
+          <div style="flex:1"><label for="skin">Skin</label><select id="skin"><option value="">Classic</option><option value="arcade">Arcade</option></select></div>
           <div style="flex:1"><label for="theme">Theme</label><select id="theme"><option value="">Auto</option><option>light</option><option>dark</option></select></div>
         </div>
       </div>

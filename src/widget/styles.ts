@@ -70,3 +70,36 @@ summary { cursor: pointer; padding: 9px 12px; font-size: 13px; font-weight: 600;
 a { color: var(--cb-accent); }
 .foot { margin-top: 12px; font-size: 11px; color: var(--cb-muted); text-align: center; }
 `;
+
+// Arcade skin: dark console, chunky 3D keys, gold START-style button. <cashu-boost skin="arcade">
+export const arcade = /* css */ `
+:host([skin="arcade"]) {
+  --cb-accent: #ffc23d;
+  --cb-accent-ink: #2a1a00;
+  --cb-bg: #1b1a18;
+  --cb-surface: #0f0e0d;
+  --cb-ink: #f2f2f2;
+  --cb-muted: #a8a29a;
+  --cb-line: #3d3934;
+  --cb-ok: #5fd38a;
+  --cb-bad: #ff7a6b;
+  --cb-radius: 24px;
+  font-family: "Gabarito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+:host([skin="arcade"]) .card { background: linear-gradient(180deg, #2b2926, #151412); border-color: #3a3631; box-shadow: 0 24px 60px rgba(0,0,0,.45); }
+:host([skin="arcade"]) .title { font-weight: 900; font-size: 18px; letter-spacing: -.01em; }
+:host([skin="arcade"]) .nut { background: linear-gradient(180deg, #ffd56b, #ffc23d 45%, #f5a800); box-shadow: inset 0 -3px 0 #e89a00, 0 2px 0 #000; border-radius: 10px; }
+:host([skin="arcade"]) button { font-weight: 800; border: 0; background: #2e2b27; box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 3px 0 #000; transition: transform .08s, box-shadow .08s; }
+:host([skin="arcade"]) button:active { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 1px 0 #000; }
+:host([skin="arcade"]) button[aria-pressed="true"], :host([skin="arcade"]) button.primary {
+  background: linear-gradient(180deg, #ffd56b, var(--cb-accent) 45%, #f5a800); color: var(--cb-accent-ink);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 4px 0 #a86a00, 0 8px 18px rgba(0,0,0,.35); }
+:host([skin="arcade"]) button.primary { font-size: 17px; letter-spacing: .05em; text-transform: uppercase; padding: 14px; border-radius: 16px; }
+:host([skin="arcade"]) button.primary:active { box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 1px 0 #a86a00; }
+:host([skin="arcade"]) button.ghost { background: transparent; box-shadow: none; text-decoration: underline; text-decoration-color: var(--cb-muted); text-underline-offset: 4px; }
+:host([skin="arcade"]) .amounts button { padding: 12px 6px; font-size: 16px; }
+:host([skin="arcade"]) details { background: #0f0e0d; }
+:host([skin="arcade"]) .badge.nutzap { background: rgba(255,194,61,.1); }
+:host([skin="arcade"]) .big { color: var(--cb-accent); text-shadow: 0 0 18px rgba(255,194,61,.35); font-weight: 900; }
+:host([skin="arcade"]) .banner { background: rgba(255,194,61,.07); }
+`;

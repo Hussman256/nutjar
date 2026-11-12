@@ -30,6 +30,7 @@ function attrs(): Record<string, string> {
   if (val('mint')) a.mint = val('mint');
   if (val('amounts') && val('amounts') !== '21,100,500,2100') a.amounts = val('amounts');
   if (val('theme')) a.theme = val('theme');
+  if (val('skin')) a.skin = val('skin');
   return a;
 }
 
@@ -103,6 +104,6 @@ $('episode').addEventListener('change', () => {
   showSplits();
   update();
 });
-for (const id of ['npub', 'lnaddress', 'creq', 'label', 'name', 'mint', 'amounts', 'accent', 'theme']) $(id).addEventListener('input', schedule);
+for (const id of ['npub', 'lnaddress', 'creq', 'label', 'name', 'mint', 'amounts', 'accent', 'theme', 'skin']) $(id).addEventListener('input', schedule);
 $('btn-copy').addEventListener('click', () => navigator.clipboard?.writeText($('code').textContent ?? ''));
 update();
