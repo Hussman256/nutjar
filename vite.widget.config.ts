@@ -5,6 +5,6 @@ export default defineConfig({
   build: {
     target: 'es2022',
     emptyOutDir: false,
-    lib: { entry: 'src/widget/cashu-boost.ts', name: 'CashuBoost', formats: ['iife'], fileName: () => 'cashu-boost.js' },
+    lib: { entry: 'src/widget/cashu-boost.ts', name: 'Nutjar', formats: ['iife'], fileName: () => 'nutjar.js' },
   },
 });

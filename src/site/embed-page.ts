@@ -42,7 +42,7 @@ function update() {
   const attrStr = Object.entries(a)
     .map(([k, v]) => ` ${k}='${v.replace(/&/g, '&amp;').replace(/'/g, '&#39;')}'`)
     .join('');
-  $('code').textContent = `<script src="${origin}cashu-boost.js" defer></script>\n<cashu-boost${attrStr}${style}></cashu-boost>`;
+  $('code').textContent = `<script src="${origin}nutjar.js" defer></script>\n<cashu-boost${attrStr}${style}></cashu-boost>`;
 
   const hasTarget = a.npub || a.lnaddress || a.recipients || a['payment-request'];
   if (!hasTarget) {

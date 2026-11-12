@@ -1,11 +1,11 @@
-# 🥜 Cashu Boost
+# 🥜 Nutjar
 
 **A Value4Value boost button paid in Cashu ecash.** Drop it on any podcast episode, article, video or creator page. Listeners pick an amount, write a message and pay with Lightning or ecash. Creators receive the boost as a [NIP-61 nutzap](https://github.com/nostr-protocol/nips/blob/master/61.md), split between hosts, guests and editors the way their [Podcasting 2.0 feed](https://podcasting2.org/docs/podcast-namespace/tags/value) says.
 
 Built for [Nut November](https://nutnovember.org), Value4Value track.
 
 ```html
-<script src="https://YOUR-HOST/cashu-boost.js" defer></script>
+<script src="https://hussman256.github.io/nutjar/nutjar.js" defer></script>
 <cashu-boost npub="npub1…" lnaddress="you@getalby.com" label="Episode 42"></cashu-boost>
 ```
 
@@ -16,7 +16,7 @@ Built for [Nut November](https://nutnovember.org), Value4Value track.
 | `index.html` | Landing page with a **two-sided live demo**: boost on the left, watch two demo creators' inbox receive and collect it on the right. Runs on the testnut mint (fake sats, self-paying invoices). |
 | `embed.html` | **Embed builder**. Enter an npub/lightning address, or load your RSS feed and pick an episode. Live preview, copy the code. |
 | `inbox.html` | **Creator inbox**. Sign in with a NIP-07 extension, set up receiving (NIP-60 key + NIP-61 profile), read boosts and messages, collect ecash, cash out to a lightning address. |
-| `cashu-boost.js` | The widget: one script, a `<cashu-boost>` web component in shadow DOM. Works on any page. |
+| `nutjar.js` | The widget: one script, a `<cashu-boost>` web component in shadow DOM. Works on any page. |
 
 ## How a boost flows
 
@@ -59,7 +59,7 @@ This lines up with the Cashu plans in the [Hopp](https://gitlab.com/nodesignal/h
 ```bash
 npm install
 npm run dev        # site with hot reload
-npm run build      # site + standalone dist/cashu-boost.js
+npm run build      # site + standalone dist/nutjar.js
 npm run e2e        # end-to-end tests against testnut.cashu.space
 npm run typecheck
 ```

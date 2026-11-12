@@ -113,7 +113,7 @@ $('demo-collect').addEventListener('click', async () => {
 });
 
 const origin = location.origin + location.pathname.replace(/[^/]*$/, '');
-$('snippet').textContent = `<script src="${origin}cashu-boost.js" defer></script>
+$('snippet').textContent = `<script src="${origin}nutjar.js" defer></script>
 <cashu-boost npub="npub1yourkey…" lnaddress="you@getalby.com" label="Episode 42"></cashu-boost>`;
 
 // ---------- PRESS START ----------

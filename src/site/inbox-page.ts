@@ -150,7 +150,7 @@ function describe() {
 
 function snippet() {
   const origin = location.origin + location.pathname.replace(/[^/]*$/, '');
-  return `<script src="${origin}cashu-boost.js" defer></script>\n<cashu-boost npub="${npub(me)}"></cashu-boost>`;
+  return `<script src="${origin}nutjar.js" defer></script>\n<cashu-boost npub="${npub(me)}"></cashu-boost>`;
 }
 
 // ---------- setup ----------

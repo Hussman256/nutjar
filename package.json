@@ -1,10 +1,10 @@
 {
-  "name": "cashu-boost",
+  "name": "nutjar",
   "version": "1.0.0",
   "description": "Embeddable Value4Value boost button paid in Cashu ecash, with nutzaps and Podcasting 2.0 splits",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build -c vite.widget.config.ts && node scripts/ascii.mjs dist/cashu-boost.js",
+    "build": "vite build && vite build -c vite.widget.config.ts && node scripts/ascii.mjs dist/nutjar.js",
     "preview": "vite preview",
     "typecheck": "tsc -p .",
     "e2e": "vite build --ssr scripts/e2e.ts --outDir .e2e --emptyOutDir && node .e2e/e2e.js"
@@ -24,5 +24,10 @@
     "@types/qrcode": "^1.5.6",
     "typescript": "^7.0.2",
     "vite": "^8.3.8"
+  },
+  "homepage": "https://hussman256.github.io/nutjar/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hussman256/nutjar.git"
   }
 }
