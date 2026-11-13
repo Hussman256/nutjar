@@ -34,7 +34,7 @@ const RAIL_LABEL: Record<string, string> = {
 };
 
 export class CashuBoost extends HTMLElement {
-  static observedAttributes = ['npub', 'lnaddress', 'recipients', 'feed', 'episode', 'payment-request', 'mint', 'label'];
+  static observedAttributes = ['npub', 'lnaddress', 'recipients', 'feed', 'episode', 'payment-request', 'mint', 'label', 'max'];
 
   private root: ShadowRoot;
   private view: View = 'loading';
@@ -170,9 +170,16 @@ export class CashuBoost extends HTMLElement {
 
   // ---------- actions ----------
 
+  /** Beta safety cap on a single boost (sats). Creators can raise or lower it with max="…". */
+  private maxAmount(): number {
+    const v = parseInt(this.attr('max') ?? '', 10);
+    return v > 0 ? v : 100_000;
+  }
+
   private async payInvoice() {
     const mint = this.mint();
     if (!mint) return this.fail('No mint configured: set the mint attribute or have the creator publish a nutzap profile.');
+    if (this.amount > this.maxAmount()) return this.fail(`Boosts are capped at ${fmt(this.maxAmount())} sats while Nutjar is in beta.`);
     this.error = '';
     this.view = 'invoice';
     this.invoice = '';
@@ -389,7 +396,8 @@ export class CashuBoost extends HTMLElement {
     $<HTMLInputElement>('[data-field="custom"]')?.addEventListener('change', (e) => {
       const v = parseInt((e.target as HTMLInputElement).value, 10);
       if (v > 0) {
-        this.amount = v;
+        this.error = v > this.maxAmount() ? `Boosts are capped at ${fmt(this.maxAmount())} sats while Nutjar is in beta.` : '';
+        this.amount = Math.min(v, this.maxAmount());
         this.render();
       }
     });
