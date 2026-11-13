@@ -3,12 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1b1a18">
+  <meta name="theme-color" content="#fbf4e8">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Nutjar">
   <title>Boost Embed Builder</title>
   <meta name="description" content="Build a Cashu boost button for your podcast, article or page, with Podcasting 2.0 splits.">
@@ -16,17 +15,18 @@
   <link rel="icon" href="./favicon-32.png" sizes="32x32">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400..800&display=swap">
   <link rel="stylesheet" href="/src/site/site.css">
 </head>
 <body>
   <div class="wrap">
     <nav>
-      <a class="brand" href="./" aria-label="Nutjar home"><span class="logo"><span class="nut">🥜</span>Nutjar</span></a>
+      <a class="brand" href="./"><img src="./icon.svg" alt="" width="34" height="34">nutjar</a>
       <div class="links">
-        <a href="./">Play</a>
-        <a href="./embed.html" aria-current="page">Add to your site</a>
-        <a href="./inbox.html">Creator inbox</a>
+        <a href="./">Home</a>
+        <a href="./embed.html" aria-current="page">Button for your site</a>
+        <a href="./inbox.html">Creator app</a>
+        <a class="cta" href="./b/">Get your link</a>
       </div>
     </nav>
 
@@ -96,7 +96,7 @@
       </div>
     </div>
 
-    <footer><span>Nutjar · MIT licensed</span><span>Works anywhere you can paste HTML</span></footer>
+    <footer><span>🥜 Nutjar · MIT licensed</span><span><a href="https://github.com/Hussman256/nutjar" target="_blank" rel="noopener">GitHub</a></span></footer>
   </div>
   <script type="module" src="/src/site/embed-page.ts"></script>
 </body>

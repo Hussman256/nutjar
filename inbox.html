@@ -3,12 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1b1a18">
+  <meta name="theme-color" content="#fbf4e8">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Nutjar">
   <title>Boost Inbox</title>
   <meta name="description" content="Read and collect the Cashu boosts (nutzaps) your listeners sent you.">
@@ -16,17 +15,18 @@
   <link rel="icon" href="./favicon-32.png" sizes="32x32">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400..800&display=swap">
   <link rel="stylesheet" href="/src/site/site.css">
 </head>
 <body>
   <div class="wrap">
     <nav>
-      <a class="brand" href="./" aria-label="Nutjar home"><span class="logo"><span class="nut">🥜</span>Nutjar</span></a>
+      <a class="brand" href="./"><img src="./icon.svg" alt="" width="34" height="34">nutjar</a>
       <div class="links">
-        <a href="./">Play</a>
-        <a href="./embed.html">Add to your site</a>
-        <a href="./inbox.html" aria-current="page">Creator inbox</a>
+        <a href="./">Home</a>
+        <a href="./embed.html">Button for your site</a>
+        <a href="./inbox.html" aria-current="page">Creator app</a>
+        <a class="cta" href="./b/">Get your link</a>
       </div>
     </nav>
 
@@ -102,6 +102,13 @@ https://mint.coinos.io</textarea>
             <div class="row"><input id="ln" placeholder="you@getalby.com" style="flex:1"><button id="btn-melt">Send</button></div>
             <p id="melt-out" class="small"></p>
           </div>
+          <div class="panel gold" style="margin-top:16px">
+            <h3>Your boost link</h3>
+            <p class="small muted">Share it in your bio, posts and show notes.</p>
+            <div class="box mono" id="my-link" style="max-height:none"></div>
+            <div class="row" style="margin-top:10px"><button id="btn-copy-link">Copy link</button><a class="btn ghost" id="my-link-open" target="_blank" rel="noopener">Open</a></div>
+            <div class="qr" id="my-qr" style="margin-top:14px;width:180px"></div>
+          </div>
           <div class="panel" style="margin-top:16px">
             <h3>Your embed code</h3>
             <pre id="my-snippet"></pre>
@@ -111,7 +118,7 @@ https://mint.coinos.io</textarea>
       </div>
     </section>
 
-    <footer><span>Nutjar · MIT licensed</span><span>Nutzaps (NIP-61) · NIP-60 key storage · NUT-07 state checks</span></footer>
+    <footer><span>🥜 Nutjar · MIT licensed</span><span><a href="https://github.com/Hussman256/nutjar" target="_blank" rel="noopener">GitHub</a></span></footer>
   </div>
   <script type="module" src="/src/site/inbox-page.ts"></script>
 </body>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fbf4e8">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+  <title>Boost link · Nutjar</title>
+  <meta name="description" content="Send a boost with a message, paid in Cashu ecash. No account needed.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Boost me on Nutjar 🥜">
+  <meta property="og:description" content="Send a few sats with a message. Any Lightning wallet works, no account needed.">
+  <meta property="og:image" content="https://hussman256.github.io/nutjar/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400..800&display=swap">
+  <link rel="stylesheet" href="/src/site/site.css">
+</head>
+<body data-no-install>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="../"><img src="../icon.svg" alt="" width="34" height="34">nutjar</a>
+      <div class="links">
+        <a href="../embed.html">Button for your site</a>
+        <a href="../inbox.html">Creator app</a>
+        <a class="cta" href="./" id="nav-own">Get your link</a>
+      </div>
+    </nav>
+
+    <!-- A creator's boost page -->
+    <main id="page" class="profile hidden">
+      <div class="card">
+        <div class="banner"><img id="p-banner-img" alt="" style="width:100%;height:100%;object-fit:cover;display:none"></div>
+        <div class="who">
+          <div class="avatar"><img id="p-avatar-img" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:none"><span id="p-avatar-emoji">🥜</span></div>
+          <div class="name" id="p-name">Loading…</div>
+          <div class="handle" id="p-handle"></div>
+          <p class="about" id="p-about"></p>
+        </div>
+      </div>
+      <div id="p-widget"></div>
+      <p class="small muted" style="text-align:center;margin-top:22px">Boosts are paid in <a href="https://cashu.space" target="_blank" rel="noopener">Cashu</a> ecash. <a class="textlink" href="./">Get your own jar →</a></p>
+    </main>
+
+    <!-- The link maker -->
+    <main id="maker" class="hidden">
+      <span class="kicker">Boost link</span>
+      <h1 style="font-size:clamp(38px,6vw,64px)">One link. Every platform.</h1>
+      <p class="lede">Put it in your X bio, YouTube descriptions, Linktree or show notes. Fans tap it, pick an amount, write a message and pay with any Lightning wallet.</p>
+      <div class="grid2" style="margin-top:28px">
+        <div class="panel">
+          <label for="m-npub">Your Nostr npub</label>
+          <input id="m-npub" placeholder="npub1…" autocomplete="off">
+          <label for="m-to">…and/or your lightning address</label>
+          <input id="m-to" placeholder="you@getalby.com" autocomplete="off">
+          <p class="small muted">With an npub, the page shows your Nostr name and picture, and boosts arrive as nutzaps (set up receiving in the <a href="../inbox.html">creator app</a>). A lightning address alone works too.</p>
+          <label for="m-label">What are people boosting? <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
+          <input id="m-label" placeholder="My podcast · my newsletter · my music">
+          <label for="m-skin">Style</label>
+          <select id="m-skin"><option value="">Classic</option><option value="arcade">Arcade</option></select>
+          <p id="m-err" class="err"></p>
+        </div>
+        <div class="panel gold">
+          <h3>Your link</h3>
+          <div class="box mono" id="m-link" style="max-height:none">Fill in an npub or lightning address.</div>
+          <div class="row" style="margin-top:12px">
+            <button id="m-copy" disabled>Copy link</button>
+            <a class="btn ghost" id="m-open" target="_blank" rel="noopener" aria-disabled="true">Preview</a>
+            <a class="btn dark" id="m-share" target="_blank" rel="noopener" aria-disabled="true">Share on X</a>
+          </div>
+          <div class="row" style="margin-top:20px;align-items:flex-start;gap:18px">
+            <div class="qr" id="m-qr"></div>
+            <div style="flex:1;min-width:160px">
+              <h3 style="font-size:18px">QR code</h3>
+              <p class="small muted">Put it on stream overlays, slides, merch tables and business cards.</p>
+              <a class="btn ghost" id="m-dl" download="nutjar-qr.png" aria-disabled="true">Download PNG</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer><span>🥜 Nutjar · MIT licensed</span><span><a href="../">What is Nutjar?</a></span></footer>
+  </div>
+  <script type="module" src="/src/site/link-page.ts"></script>
+</body>
+</html>

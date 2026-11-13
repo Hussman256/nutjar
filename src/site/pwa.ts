@@ -15,7 +15,7 @@ const links = document.querySelector('nav .links');
 let deferred: InstallPrompt | undefined;
 
 function addButton(label: string, onClick: () => void) {
-  if (!links || standalone || links.querySelector('.install')) return;
+  if (!links || standalone || links.querySelector('.install') || document.body.hasAttribute('data-no-install')) return;
   const a = document.createElement('a');
   a.href = '#';
   a.className = 'install';

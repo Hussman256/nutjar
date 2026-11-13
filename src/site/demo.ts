@@ -5,6 +5,7 @@ import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import { DEFAULT_RELAYS, npub } from '../lib/nostr';
 import { fetchNutzaps, newP2pkKey, redeem, refreshStates, watchNutzaps, type Nutzap } from '../lib/inbox';
+import QRCode from 'qrcode';
 import { esc, zapHtml } from './zaplist';
 
 const MINT = 'https://testnut.cashu.space';
@@ -65,7 +66,7 @@ function render() {
   const who = (z: Nutzap) => creators.find((c) => c.pubkey === z.to)?.name ?? '?';
   $('demo-zaps').innerHTML = list.length
     ? list.map((z) => zapHtml(z, ` <span class="tag">to ${esc(who(z))}</span>`)).join('')
-    : '<p class="muted small">No boosts yet. Player 1, your move.</p>';
+    : '<p class="muted small">Nothing yet. Your boost will pop in here.</p>';
   for (const id of fresh) $('demo-zaps').querySelector(`[data-id="${id}"]`)?.classList.add('flash');
   fresh = new Set();
   const open = list.filter((z) => z.state === 'unclaimed');
@@ -117,26 +118,41 @@ const origin = location.origin + location.pathname.replace(/[^/]*$/, '');
 $('snippet').textContent = `<script src="${origin}nutjar.js" defer></script>
 <cashu-boost npub="npub1yourkey…" lnaddress="you@getalby.com" label="Episode 42"></cashu-boost>`;
 
-// ---------- PRESS START ----------
-const device = document.getElementById('device')!;
-const screenSats = document.getElementById('screen-sats')!;
-document.getElementById('start')!.addEventListener('click', () => {
-  device.classList.add('on');
-  screenSats.classList.remove('hidden');
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let n = 0;
-  const target = 2100;
-  const tick = () => {
-    n = Math.min(target, n + Math.ceil((target - n) / 6));
-    screenSats.textContent = `+${n.toLocaleString('en-US')} sats`;
-    if (n < target && !reduce) requestAnimationFrame(tick);
+// ---------- page life ----------
+// Jar counter: the illustrated total plus anything boosted in this visit's demo.
+const jarTotal = document.getElementById('jar-total');
+let boosted = 2810;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function bump(by: number) {
+  const from = boosted;
+  boosted += by;
+  if (!jarTotal) return;
+  if (reduce) return void (jarTotal.textContent = boosted.toLocaleString('en-US') + ' sats');
+  const t0 = performance.now();
+  const step = (t: number) => {
+    const k = Math.min(1, (t - t0) / 900);
+    jarTotal.textContent = Math.round(from + (boosted - from) * (1 - Math.pow(1 - k, 3))).toLocaleString('en-US') + ' sats';
+    if (k < 1) requestAnimationFrame(step);
   };
-  tick();
-  setTimeout(() => document.getElementById('play')!.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }), reduce ? 0 : 700);
-});
-widget.addEventListener('boost', (e) => {
-  const amount = (e as CustomEvent<{ amount: number }>).detail.amount;
-  device.classList.add('on');
-  screenSats.classList.remove('hidden');
-  screenSats.textContent = `+${amount.toLocaleString('en-US')} sats`;
-});
+  requestAnimationFrame(step);
+}
+widget.addEventListener('boost', (e) => bump((e as CustomEvent<{ amount: number }>).detail.amount));
+
+// Example QR for the boost-link card.
+const qrBox = document.getElementById('ways-qr');
+if (qrBox) QRCode.toString(origin + 'b/?to=you@getalby.com', { type: 'svg', margin: 0 }).then((svg) => (qrBox.innerHTML = svg));
+
+// Split bars grow when they scroll into view.
+const bars = document.querySelectorAll<HTMLElement>('.split-row .bar span[data-w]');
+const grow = () => bars.forEach((b) => (b.style.width = b.dataset.w + '%'));
+if (reduce || !('IntersectionObserver' in window)) grow();
+else {
+  const io = new IntersectionObserver((entries) => {
+    if (entries.some((en) => en.isIntersecting)) {
+      grow();
+      io.disconnect();
+    }
+  }, { threshold: 0.4 });
+  const panel = document.getElementById('split-panel');
+  if (panel) io.observe(panel);
+}

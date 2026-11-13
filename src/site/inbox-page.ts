@@ -181,6 +181,10 @@ let unwatch: (() => void) | undefined;
 async function start() {
   describe();
   $('my-snippet').textContent = snippet();
+  const link = new URL('./b/?npub=' + npub(me), location.href).href;
+  $('my-link').textContent = link;
+  $<HTMLAnchorElement>('my-link-open').href = link;
+  $('my-qr').innerHTML = await QRCode.toString(link, { type: 'svg', margin: 1 });
   await load();
   unwatch?.();
   unwatch = watchNutzaps(me, relays, async (z) => {
@@ -238,6 +242,7 @@ $('btn-setup').addEventListener('click', async () => {
 
 // ---------- collect & cash out ----------
 $('btn-refresh').addEventListener('click', () => load());
+$('btn-copy-link').addEventListener('click', () => navigator.clipboard?.writeText($('my-link').textContent ?? ''));
 
 $('btn-collect').addEventListener('click', async () => {
   if (!privkey) return;

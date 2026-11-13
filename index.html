@@ -3,72 +3,165 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1b1a18">
+  <meta name="theme-color" content="#fbf4e8">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Nutjar">
   <title>Nutjar</title>
-  <meta name="description" content="An embeddable Value4Value boost button paid in Cashu ecash. Listeners send sats with a message; creators receive nutzaps, split the Podcasting 2.0 way.">
+  <meta name="description" content="A tip jar for the open web. Fans send sats with a message, no account needed. Creators receive Cashu ecash, split between everyone who made the work.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Nutjar: tips with something to say">
+  <meta property="og:description" content="Fans send sats with a message. Creators get Cashu ecash, split the Podcasting 2.0 way. No sign-up, open source.">
+  <meta property="og:image" content="https://hussman256.github.io/nutjar/og.png">
+  <meta property="og:url" content="https://hussman256.github.io/nutjar/">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="icon" href="./favicon-32.png" sizes="32x32">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400..800&display=swap">
   <link rel="stylesheet" href="/src/site/site.css">
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="nut" viewBox="0 0 60 100">
+        <path d="M30 4c-14 0-23 10-23 22 0 6 3 10 6 14-3 4-6 9-6 16 0 12 9 22 23 22s23-10 23-22c0-7-3-12-6-16 3-4 6-8 6-14 0-12-9-22-23-22z" fill="#d39a5c" stroke="#1d140c" stroke-width="4"/>
+        <g fill="#8a5424" opacity=".5"><circle cx="22" cy="20" r="3"/><circle cx="36" cy="28" r="3"/><circle cx="26" cy="58" r="3"/><circle cx="38" cy="66" r="3"/><circle cx="24" cy="72" r="2.5"/></g>
+        <path d="M17 40h26" stroke="#8a5424" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+      </symbol>
+      <clipPath id="jar-clip"><path d="M84 92c-30 10-50 40-50 80v150c0 26 20 42 46 42h140c26 0 46-16 46-42V172c0-40-20-70-50-80z"/></clipPath>
+    </defs>
+  </svg>
+
   <div class="wrap">
     <nav>
-      <a class="brand" href="./" aria-label="Nutjar home"><span class="logo"><span class="nut">🥜</span>Nutjar</span></a>
+      <a class="brand" href="./"><img src="./icon.svg" alt="" width="34" height="34">nutjar</a>
       <div class="links">
-        <a href="./" aria-current="page">Play</a>
-        <a href="./embed.html">Add to your site</a>
-        <a href="./inbox.html">Creator inbox</a>
-        <a href="https://github.com/Hussman256/nutjar" id="repo-link" target="_blank" rel="noopener">Source</a>
+        <a href="#demo">Try it</a>
+        <a href="#ways">How</a>
+        <a href="#faq">FAQ</a>
+        <a href="./inbox.html">Creator app</a>
+        <a href="https://github.com/Hussman256/nutjar" id="repo-link" target="_blank" rel="noopener">GitHub</a>
+        <a class="cta" href="./b/">Get your link</a>
       </div>
     </nav>
 
-    <section class="stage">
-      <div class="cabinet">
-        <span class="logo big"><span class="nut">🥜</span>Nutjar</span>
-
-        <div class="device" id="device" aria-hidden="true">
-          <div class="top"><span class="led"></span><span class="grill"></span></div>
-          <div class="screen"><span class="press">PRESS START</span><span class="screen-sats hidden" id="screen-sats"></span></div>
-          <div class="pad"><span class="key"></span><span class="key"></span><span class="key red">⚡</span></div>
-          <span class="coin"></span>
+    <header class="hero">
+      <div>
+        <span class="pill"><span class="dot"></span>Value4Value · paid in Cashu ecash</span>
+        <h1>Tips with <span class="hl">something</span> to&nbsp;say.</h1>
+        <p class="lede">Nutjar is a tip jar for the open web. Fans send a few sats and a message, with no account and no app. Creators receive ecash, split between everyone who made the work.</p>
+        <div class="ctas">
+          <a class="btn big" href="./b/">Get your boost link →</a>
+          <a class="btn big ghost" href="#demo">Try the live demo</a>
         </div>
+        <div class="trust"><span>No sign-up</span><span>Non-custodial</span><span>Open source</span><span>Works anywhere</span></div>
+      </div>
 
-        <h1 class="tagline hero-title">Give value back.</h1>
-        <p class="sub">Tip any episode, article or page with ecash.<br>Real sats, with a message attached.</p>
-        <button class="start" id="start">START</button>
-        <p style="margin:16px 0 0"><a class="textlink" href="./embed.html">Making something? Add a boost button</a></p>
+      <div class="jar-stage" aria-hidden="true">
+        <div class="bubble b1"><b>+2,100 sats</b>Best episode this year. More of the guest please!</div>
+        <div class="bubble b2"><b>+500 sats</b>This tutorial saved my weekend 🙏</div>
+        <div class="bubble b3"><b>+210 sats</b>Play the B-side live next time</div>
+        <svg class="jar-svg" viewBox="0 0 320 400">
+          <use href="#nut" class="drop d1" x="110" y="150" width="34" height="56"/>
+          <use href="#nut" class="drop d2" x="160" y="140" width="34" height="56"/>
+          <use href="#nut" class="drop d3" x="200" y="160" width="34" height="56"/>
+          <ellipse cx="160" cy="376" rx="128" ry="12" fill="#1d140c" opacity=".12"/>
+          <path d="M84 92c-30 10-50 40-50 80v150c0 26 20 42 46 42h140c26 0 46-16 46-42V172c0-40-20-70-50-80z" fill="#cfe8ff" opacity=".45"/>
+          <g clip-path="url(#jar-clip)">
+            <use href="#nut" x="40" y="300" width="44" height="72" transform="rotate(-30 62 336)"/>
+            <use href="#nut" x="86" y="306" width="44" height="72" transform="rotate(50 108 342)"/>
+            <use href="#nut" x="134" y="300" width="44" height="72" transform="rotate(-10 156 336)"/>
+            <use href="#nut" x="182" y="304" width="44" height="72" transform="rotate(70 204 340)"/>
+            <use href="#nut" x="228" y="298" width="44" height="72" transform="rotate(-45 250 334)"/>
+            <use href="#nut" x="62" y="262" width="44" height="72" transform="rotate(80 84 298)"/>
+            <use href="#nut" x="110" y="256" width="44" height="72" transform="rotate(-60 132 292)"/>
+            <use href="#nut" x="158" y="260" width="44" height="72" transform="rotate(20 180 296)"/>
+            <use href="#nut" x="206" y="256" width="44" height="72" transform="rotate(-80 228 292)"/>
+            <use href="#nut" x="86" y="222" width="44" height="72" transform="rotate(35 108 258)"/>
+            <use href="#nut" x="140" y="214" width="44" height="72" transform="rotate(-25 162 250)"/>
+            <use href="#nut" x="190" y="222" width="44" height="72" transform="rotate(60 212 258)"/>
+            <use href="#nut" x="40" y="236" width="44" height="72" transform="rotate(-70 62 272)"/>
+            <use href="#nut" x="236" y="232" width="44" height="72" transform="rotate(15 258 268)"/>
+          </g>
+          <path d="M84 92c-30 10-50 40-50 80v150c0 26 20 42 46 42h140c26 0 46-16 46-42V172c0-40-20-70-50-80z" fill="none" stroke="#1d140c" stroke-width="5"/>
+          <path d="M58 170c0-24 10-44 28-56" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" opacity=".8"/>
+          <path d="M56 200v60" stroke="#fff" stroke-width="9" stroke-linecap="round" opacity=".6"/>
+          <rect x="80" y="72" width="160" height="26" rx="8" fill="#fffaf2" stroke="#1d140c" stroke-width="5"/>
+          <rect x="70" y="30" width="180" height="48" rx="12" fill="#ffc23d" stroke="#1d140c" stroke-width="5"/>
+          <path d="M90 42v24M110 42v24M130 42v24M150 42v24M170 42v24M190 42v24M210 42v24M230 42v24" stroke="#1d140c" stroke-width="3" opacity=".25"/>
+          <g transform="rotate(-4 160 180)">
+            <rect x="86" y="148" width="148" height="64" rx="12" fill="#fffaf2" stroke="#1d140c" stroke-width="4"/>
+            <text x="160" y="186" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="30" fill="#1d140c" letter-spacing="-1">nutjar</text>
+            <text x="160" y="203" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="10" fill="#ff5a36" letter-spacing="2">ECASH · V4V</text>
+          </g>
+        </svg>
+        <div class="jar-count"><span id="jar-total">2,810 sats</span><small>boosted on this page</small></div>
+      </div>
+    </header>
+  </div>
 
-        <div class="foot">
-          <span class="pill">Nut November · V4V</span>
-          <span class="powered"><span class="eyebrow">Powered by</span><span>Cashu ecash</span></span>
+  <div class="marquee-wrap"><div class="marquee" aria-hidden="true">
+    <div class="track">
+      <span>Podcasts</span><span>Blogs</span><span>Newsletters</span><span>Music</span><span>Open source</span><span>Videos</span><span>Live events</span><span>Nostr profiles</span><span>Art</span>
+      <span>Podcasts</span><span>Blogs</span><span>Newsletters</span><span>Music</span><span>Open source</span><span>Videos</span><span>Live events</span><span>Nostr profiles</span><span>Art</span>
+    </div>
+  </div></div>
+
+  <div class="wrap">
+    <section class="band" id="ways">
+      <div class="section-head">
+        <div><span class="kicker">Two ways in</span><h2>Get boosted anywhere<br>your fans are.</h2></div>
+        <p class="lede">Share a link where you can't add code, or drop a button on pages you own. Both take about a minute.</p>
+      </div>
+      <div class="grid2 ways">
+        <div class="panel">
+          <div class="num">1</div>
+          <h3>A boost link for your bio, posts and show notes</h3>
+          <p class="muted" style="margin:0">Works on X, YouTube, Instagram, Linktree, podcast apps: anywhere a link goes. Print the QR code for live shows and merch tables.</p>
+          <div class="bio">
+            <div class="av">🎙️</div>
+            <div class="nm">Your Show</div>
+            <div class="hd">@yourshow</div>
+            <div class="tx">Weekly conversations about building on Bitcoin. Liked an episode? Boost us with a message 👇<br><span class="lk">hussman256.github.io/nutjar/b/?to=you…</span></div>
+          </div>
+          <div class="mini-qr"><div class="qr" id="ways-qr"></div><p class="small muted" style="margin:0">Every link comes with a QR code. Scan it, pick an amount, write a note, pay.</p></div>
+          <a class="btn dark" href="./b/" style="align-self:flex-start">Make my link</a>
         </div>
-        <p class="disclaimer"><b>Nutjar has no token.</b> The demo uses a test mint with fake sats.</p>
+        <div class="panel">
+          <div class="num">2</div>
+          <h3>A boost button for your site</h3>
+          <p class="muted" style="margin:0">Two lines of HTML on any page: episode pages, blog posts, docs, portfolios. Load your podcast feed and splits are filled in for you.</p>
+          <div class="code-win"><div class="bar"><i></i><i></i><i></i></div><pre id="snippet"></pre></div>
+          <ul class="checks" style="margin:0">
+            <li>Classic or arcade skin, your accent colour, light or dark</li>
+            <li>Reads Podcasting 2.0 <code>podcast:value</code> splits per episode</li>
+            <li>No backend, no API keys, nothing to host</li>
+          </ul>
+          <a class="btn dark" href="./embed.html" style="align-self:flex-start">Open the builder</a>
+        </div>
       </div>
     </section>
 
-    <section id="play">
-      <h2>Two players. One boost.</h2>
-      <p class="muted">The demo runs on <b>testnut</b>, a Cashu test mint whose invoices pay themselves, so you don't need a wallet. Boost as the listener, then watch the creators receive and collect it.</p>
+    <section class="band" id="demo">
+      <div class="section-head">
+        <div><span class="kicker">Live demo</span><h2>Go on, boost someone.</h2></div>
+        <p class="lede">This runs on a Cashu <b>test mint</b>: fake sats, and the invoice pays itself, so you don't need a wallet. Watch the boost land in the creators' inbox.</p>
+      </div>
       <div class="arena">
         <div>
-          <div class="player">PLAYER 1 · LISTENER</div>
-          <cashu-boost id="demo-widget" skin="arcade" label="Episode 42: Ecash for creators" name="the Demo Show" mint="https://testnut.cashu.space"></cashu-boost>
+          <div class="player">YOU · THE FAN</div>
+          <cashu-boost id="demo-widget" label="Episode 42: Ecash for creators" name="the Demo Show" mint="https://testnut.cashu.space"></cashu-boost>
         </div>
         <div>
-          <div class="player">PLAYER 2 · CREATORS</div>
-          <div class="panel gold">
-            <h3>Creators' inbox <small>· live from Nostr relays</small></h3>
+          <div class="player">THE CREATORS' INBOX</div>
+          <div class="panel">
+            <h3>Boosts for the Demo Show <small>· live from Nostr relays</small></h3>
             <p class="small muted" id="demo-who"></p>
-            <div id="demo-zaps"><p class="muted small">No boosts yet. Player 1, your move.</p></div>
+            <div id="demo-zaps"><p class="muted small">Nothing yet. Your boost will pop in here.</p></div>
             <div class="row" style="margin-top:14px">
               <button id="demo-collect" disabled>Collect all</button>
               <span class="small muted" id="demo-total"></span>
@@ -79,43 +172,80 @@
       </div>
     </section>
 
-    <h2>How it plays</h2>
-    <div class="grid3 levels">
-      <div class="panel level"><h3>Listener boosts</h3><p class="muted">Pick an amount and write a message. Pay a Lightning invoice, which a Cashu mint turns into ecash, or paste ecash you already have. No account, no app.</p></div>
-      <div class="panel level"><h3>The boost is split</h3><p class="muted">Recipients come from the feed's <code>podcast:value</code> block. Each share is locked to its recipient and published as a NIP-61 nutzap with the message.</p></div>
-      <div class="panel level"><h3>Creators collect</h3><p class="muted">Nutzaps wait on Nostr relays until the creator collects them, in the <a href="./inbox.html">inbox</a> or any NIP-60 wallet. They can keep the ecash or send it to a Lightning address.</p></div>
-    </div>
-
-    <h2>Built for Podcasting 2.0</h2>
-    <div class="grid2">
-      <div class="panel">
-        <h3>Splits, the way the feed says</h3>
-        <p class="muted">Point it at an RSS feed and an episode. Each <code>valueRecipient</code> gets the best ecash route:</p>
-        <table>
-          <tr><th>Recipient has</th><th>Their share goes</th></tr>
-          <tr><td>A nutzap profile, via npub or the NIP-05 behind their lightning address</td><td>As a <b>nutzap</b>, locked to their key</td></tr>
-          <tr><td>Only a lightning address</td><td>Over <b>Lightning</b>, paid from ecash, with the message as a comment</td></tr>
-          <tr><td>Only a keysend node</td><td>Skipped (mints can't keysend), and the share is spread over everyone else</td></tr>
-        </table>
+    <section class="band" id="splits">
+      <div class="grid2" style="align-items:center;gap:48px">
+        <div>
+          <span class="kicker">Fair splits</span>
+          <h2>Everyone who made it gets paid.</h2>
+          <p class="lede">Podcasts already list who gets paid, and how much, in their feed. Nutjar reads that list for every episode and sends each person their share by the best route they support.</p>
+          <ul class="checks">
+            <li><b>Nutzap</b>: ecash locked to their Nostr key, waiting for them to collect</li>
+            <li><b>Lightning</b>: paid straight to their lightning address, with your message</li>
+            <li><b>Can't receive?</b> Their share goes to everyone else, nothing gets stuck</li>
+          </ul>
+        </div>
+        <div class="panel" id="split-panel">
+          <div class="total-chip">⚡ 1,000 sats boost</div>
+          <div class="split-viz">
+            <div class="split-row"><span class="who">Host</span><span class="bar"><span data-w="60" style="background:#ffc23d">600</span></span><span class="rail">nutzap</span></div>
+            <div class="split-row"><span class="who">Guest</span><span class="bar"><span data-w="30" style="background:#ff8a6b">300</span></span><span class="rail">nutzap</span></div>
+            <div class="split-row"><span class="who">Editor</span><span class="bar"><span data-w="10" style="background:#8fd3a8">100</span></span><span class="rail">Lightning</span></div>
+            <div class="split-row skip"><span class="who">Old node</span><span class="bar"></span><span class="rail">keysend only</span></div>
+          </div>
+          <p class="small muted" style="margin:16px 0 0">Example episode with a 60 / 30 / 10 split. The keysend-only recipient can't be paid by a mint, so their share is spread across the others.</p>
+        </div>
       </div>
-      <div class="panel">
-        <h3>Open standards, no lock-in</h3>
-        <ul class="checks">
-          <li><b>NIP-61 nutzaps</b> that any NIP-60 wallet can collect, matching the Hopp player's wallet plan</li>
-          <li><b>NIP-73 tags</b>, so any client can tie a boost to its episode</li>
-          <li><b>NUT-18 payment requests</b> for creators who run their own server</li>
-          <li><b>Nothing custodial</b>: static files, and leftovers go back to the listener</li>
-        </ul>
+    </section>
+
+    <section class="band uses">
+      <div class="section-head">
+        <div><span class="kicker">Who it's for</span><h2>If you make things,<br>you get a jar.</h2></div>
+      </div>
+      <div class="grid3">
+        <div class="panel"><div class="ico" style="background:#ffc23d">🎙️</div><h3>Podcasters</h3><p>Per-episode boosts, split between hosts, guests and editors from your feed. Read messages on air.</p></div>
+        <div class="panel"><div class="ico" style="background:#ffb3a1">✍️</div><h3>Writers</h3><p>A tip box at the end of every post or newsletter. Readers pay for the piece that helped them.</p></div>
+        <div class="panel"><div class="ico" style="background:#b9e3c6">🎸</div><h3>Musicians</h3><p>Boost a track, a set or a session. Split it with the band, automatically.</p></div>
+        <div class="panel"><div class="ico" style="background:#cfe8ff">🛠️</div><h3>Open-source devs</h3><p>"If this saved you an afternoon…" on your README and docs, with no sponsorship platform.</p></div>
+        <div class="panel"><div class="ico" style="background:#e5d4ff">📺</div><h3>Streamers & video</h3><p>Put your boost link in descriptions and on screen as a QR. Messages come with every tip.</p></div>
+        <div class="panel"><div class="ico" style="background:#ffe08a">🎪</div><h3>Events & merch</h3><p>Print the QR on a table card. Anyone with a Lightning wallet can say thanks in seconds.</p></div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="why">
+        <span class="kicker" style="color:#ffc23d">Why ecash</span>
+        <h2>Easy to give.<br>Easy to receive.</h2>
+        <div class="grid2">
+          <div class="item"><div class="ico">🙈</div><div><h3>Private by default</h3><p>Fans don't need an account, and boosts are sent from a throwaway key unless the fan chooses to sign.</p></div></div>
+          <div class="item"><div class="ico">📴</div><div><h3>Creators can be offline</h3><p>Boosts wait as ecash on Nostr relays until you collect them. You don't need a Lightning node or an always-on wallet.</p></div></div>
+          <div class="item"><div class="ico">⚡</div><div><h3>Tiny amounts work</h3><p>Ecash moves 21 sats as easily as 21,000, so a small thank-you isn't eaten by fees.</p></div></div>
+          <div class="item"><div class="ico">🔓</div><div><h3>Open standards, no lock-in</h3><p>Cashu, NIP-61 nutzaps and Podcasting 2.0. Any compatible wallet can collect your boosts, and the code is MIT.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band faq" id="faq">
+      <div class="section-head"><div><span class="kicker">FAQ</span><h2>Good questions.</h2></div></div>
+      <details><summary>What is Cashu ecash?</summary><p>Cashu is an open protocol for Bitcoin-backed digital cash. A mint issues tokens ("nuts") for sats. They move instantly, cheaply and privately, and can be swapped back to Lightning at any time.</p></details>
+      <details><summary>Do fans need a wallet or an account?</summary><p>No account. Fans pay a Lightning invoice from any wallet, or paste Cashu ecash they already have. The sats are turned into ecash and delivered with their message.</p></details>
+      <details><summary>Is Nutjar custodial?</summary><p>No. Nutjar is a static web app with no server. Sats are held by the Cashu mint the creator chooses until the creator collects them. Like any mint-based system, you trust that mint for the sats it backs, so pick mints you trust.</p></details>
+      <details><summary>How do creators get the money out?</summary><p>Open the creator app, sign in with your Nostr signer, and tap Collect. Keep the ecash in any Cashu wallet, or send it straight to your lightning address.</p></details>
+      <details><summary>Are boosts public?</summary><p>Nutzaps are Nostr events, so the amount, message and episode are visible. The sender is anonymous unless they choose to sign with their own Nostr key. For private boosts, creators can use a NUT-18 payment request instead.</p></details>
+      <details><summary>What does it cost?</summary><p>Nutjar takes nothing. Mints may charge a small fee per swap, and Lightning payouts include routing fees. Both are shown before you pay.</p></details>
+    </section>
+
+    <div class="final">
+      <h2>Your jar is waiting.</h2>
+      <p>Get a boost link in a minute. Share it everywhere.</p>
+      <div class="row">
+        <a class="btn big dark" href="./b/">Get your boost link</a>
+        <a class="btn big ghost" href="./inbox.html">Open the creator app</a>
       </div>
     </div>
-
-    <h2>Add it in two lines</h2>
-    <pre id="snippet"></pre>
-    <p class="muted">Or use the <a href="./embed.html">embed builder</a> to load your feed, pick an episode and copy the code.</p>
 
     <footer>
-      <span>Nutjar · MIT licensed · built for <a href="https://nutnovember.org" target="_blank" rel="noopener">Nut November</a></span>
-      <span>Ecash by <a href="https://cashu.space" target="_blank" rel="noopener">Cashu</a> · Value4Value track by <a href="https://nodesignal.space" target="_blank" rel="noopener">Nodesignal</a></span>
+      <span>🥜 Nutjar · MIT licensed · built for <a href="https://nutnovember.org" target="_blank" rel="noopener">Nut November</a></span>
+      <span><a href="https://github.com/Hussman256/nutjar" target="_blank" rel="noopener">GitHub</a> · Ecash by <a href="https://cashu.space" target="_blank" rel="noopener">Cashu</a> · V4V track by <a href="https://nodesignal.space" target="_blank" rel="noopener">Nodesignal</a></span>
     </footer>
   </div>
   <script type="module" src="/src/site/demo.ts"></script>

@@ -1,10 +1,11 @@
 export const css = /* css */ `
 :host {
-  --cb-accent: #e8742a;
+  --cb-accent: #ff5a36;
   --cb-accent-ink: #ffffff;
-  --cb-bg: #fffaf3;
+  --cb-bg: #fffaf2;
   --cb-surface: #ffffff;
-  --cb-ink: #2a1d12;
+  --cb-ink: #1d140c;
+  --cb-edge: #1d140c;
   --cb-muted: #7a6656;
   --cb-line: #ecdccb;
   --cb-ok: #2f8a4c;
@@ -16,11 +17,11 @@ export const css = /* css */ `
   color: var(--cb-ink);
 }
 :host([theme="dark"]) {
-  --cb-bg: #1d1712; --cb-surface: #272019; --cb-ink: #f6ece2; --cb-muted: #b5a291; --cb-line: #3b3128;
+  --cb-bg: #1d1712; --cb-surface: #272019; --cb-ink: #f6ece2; --cb-muted: #b5a291; --cb-line: #3b3128; --cb-edge: #f6ece266;
 }
 @media (prefers-color-scheme: dark) {
   :host(:not([theme="light"])) {
-    --cb-bg: #1d1712; --cb-surface: #272019; --cb-ink: #f6ece2; --cb-muted: #b5a291; --cb-line: #3b3128;
+    --cb-bg: #1d1712; --cb-surface: #272019; --cb-ink: #f6ece2; --cb-muted: #b5a291; --cb-line: #3b3128; --cb-edge: #f6ece266;
   }
 }
 * { box-sizing: border-box; }
@@ -69,6 +70,18 @@ summary { cursor: pointer; padding: 9px 12px; font-size: 13px; font-weight: 600;
 .center { text-align: center; }
 a { color: var(--cb-accent); }
 .foot { margin-top: 12px; font-size: 11px; color: var(--cb-muted); text-align: center; }
+`;
+
+// Classic skin (default): Nutjar paper, ink outlines, offset shadows.
+export const classic = /* css */ `
+:host(:not([skin="arcade"])) { font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+:host(:not([skin="arcade"])) .card { border: 2px solid var(--cb-edge); box-shadow: 4px 4px 0 var(--cb-edge); border-radius: 20px; }
+:host(:not([skin="arcade"])) .title { font-weight: 800; letter-spacing: -.01em; }
+:host(:not([skin="arcade"])) .nut { border: 2px solid var(--cb-edge); background: #ffc23d; }
+:host(:not([skin="arcade"])) button { border: 2px solid var(--cb-edge); font-weight: 700; }
+:host(:not([skin="arcade"])) button[aria-pressed="true"], :host(:not([skin="arcade"])) button.primary { box-shadow: 3px 3px 0 var(--cb-edge); }
+:host(:not([skin="arcade"])) button.primary:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--cb-edge); }
+:host(:not([skin="arcade"])) button.ghost { border-color: var(--cb-line); }
 `;
 
 // Arcade skin: dark console, chunky 3D keys, gold START-style button. <cashu-boost skin="arcade">

@@ -1,6 +1,6 @@
 // Nutjar service worker: the app shell works offline; money-moving requests always hit the network.
-const VERSION = 'nutjar-v1';
-const SHELL = ['./', './index.html', './inbox.html', './embed.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon.svg'];
+const VERSION = 'nutjar-v2';
+const SHELL = ['./', './index.html', './inbox.html', './embed.html', './b/', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon.svg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
