@@ -142,6 +142,32 @@ export class CashuBoost extends HTMLElement {
     return mint ? plan(this.amount, this.recipients, mint) : [];
   }
 
+  // ---------- public controls (used by hardware-style frames, e.g. the demo console) ----------
+
+  /** Step through the preset amounts. Returns the new amount. */
+  stepAmount(dir: 1 | -1): number {
+    if (this.view !== 'form') return this.amount;
+    const list = this.amounts();
+    const i = list.indexOf(this.amount);
+    const next = i === -1 ? (dir > 0 ? list[0] : list[list.length - 1]) : list[Math.max(0, Math.min(list.length - 1, i + dir))];
+    this.amount = next;
+    this.render();
+    return next;
+  }
+
+  /** Press the main button: boost from the form, or start again after a finished boost. */
+  press(): void {
+    if (this.view === 'form') this.payInvoice();
+    else if (this.view === 'done') {
+      this.change = undefined;
+      this.results = [];
+      this.message = '';
+      this.error = '';
+      this.view = 'form';
+      this.render();
+    }
+  }
+
   // ---------- actions ----------
 
   private async payInvoice() {

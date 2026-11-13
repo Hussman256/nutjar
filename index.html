@@ -154,7 +154,20 @@
       <div class="arena">
         <div>
           <div class="player">YOU · THE FAN</div>
-          <cashu-boost id="demo-widget" label="Episode 42: Ecash for creators" name="the Demo Show" mint="https://testnut.cashu.space"></cashu-boost>
+          <div class="console" id="console">
+            <div class="console-top"><span class="led" id="console-led" title="Lights up when a boost lands"></span><span class="grill"></span><span class="console-brand">NUTJAR&nbsp;BOY</span></div>
+            <div class="console-screen">
+              <cashu-boost id="demo-widget" skin="arcade" label="Episode 42: Ecash for creators" name="the Demo Show" mint="https://testnut.cashu.space"></cashu-boost>
+            </div>
+            <div class="press-hint" id="press-hint">PRESS ⚡ TO BOOST</div>
+            <div class="console-pad">
+              <button class="key blue" id="key-less" aria-label="Less sats">◀</button>
+              <button class="key blue" id="key-more" aria-label="More sats">▶</button>
+              <button class="key red" id="key-boost" aria-label="Boost">⚡</button>
+            </div>
+            <div class="console-labels"><span>LESS</span><span>MORE</span><span>BOOST</span></div>
+            <span class="coin" id="console-coin" aria-hidden="true"></span>
+          </div>
         </div>
         <div>
           <div class="player">THE CREATORS' INBOX</div>

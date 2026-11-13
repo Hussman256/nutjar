@@ -156,3 +156,23 @@ else {
   const panel = document.getElementById('split-panel');
   if (panel) io.observe(panel);
 }
+
+// ---------- the console: blue keys step the amount, red key boosts ----------
+type BoostEl = HTMLElement & { stepAmount(d: 1 | -1): number; press(): void };
+const consoleEl = document.getElementById('console');
+const boostEl = widget as BoostEl;
+document.getElementById('key-less')?.addEventListener('click', () => boostEl.stepAmount(-1));
+document.getElementById('key-more')?.addEventListener('click', () => boostEl.stepAmount(1));
+document.getElementById('key-boost')?.addEventListener('click', () => {
+  consoleEl?.classList.add('busy');
+  consoleEl?.classList.remove('lit');
+  boostEl.press();
+});
+// Any route to boosting (keys or the on-screen button) hides the hint until it lands.
+widget.shadowRoot?.addEventListener('click', (e) => {
+  if ((e.target as HTMLElement).closest?.('[data-act="invoice"]')) consoleEl?.classList.add('busy');
+});
+widget.addEventListener('boost', () => {
+  consoleEl?.classList.remove('busy');
+  consoleEl?.classList.add('lit');
+});
