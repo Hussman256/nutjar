@@ -1,3 +1,4 @@
+import './pwa';
 // Landing-page demo: two throwaway creators on the testnut mint, a live widget, and their inbox.
 import '../widget/cashu-boost';
 import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';

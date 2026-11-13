@@ -176,3 +176,9 @@ footer { margin: 80px 0 32px; padding-top: 18px; border-top: 1px solid var(--lin
   .device .coin { height: 54px; bottom: 46px; }
   .cabinet .tagline { margin-top: 14px; }
 }
+
+/* ---------- installed app ---------- */
+nav .links a.install { color: var(--gold-ink); background: var(--gold); }
+.is-app body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.is-app footer { display: none; }
+.is-app nav { position: sticky; top: 0; z-index: 10; background: linear-gradient(var(--bg) 70%, transparent); }

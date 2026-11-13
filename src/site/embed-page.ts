@@ -1,3 +1,4 @@
+import './pwa';
 import '../widget/cashu-boost';
 import { parseFeed, recipientsFor, type ParsedFeed } from '../lib/feed';
 import { esc } from './zaplist';

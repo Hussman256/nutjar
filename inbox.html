@@ -2,10 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1b1a18">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Nutjar">
   <title>Boost Inbox</title>
   <meta name="description" content="Read and collect the Cashu boosts (nutzaps) your listeners sent you.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥜</text></svg>">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="icon" href="./favicon-32.png" sizes="32x32">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&display=swap">
@@ -22,19 +30,45 @@
       </div>
     </nav>
 
-    <h1>Your boosts</h1>
-    <p class="lede">Messages and ecash from your listeners. Sign in with your Nostr browser extension. This page never asks for your private key.</p>
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <h1 style="margin-bottom:6px">Your boosts</h1>
+      <button class="ghost hidden" id="signed-in" style="margin-bottom:14px">Sign out</button>
+    </div>
+    <p class="lede">Messages and ecash from your listeners. Sign in with Nostr. Your private key stays in your extension or signer app, and Nutjar never asks for it.</p>
 
-    <section id="connect" class="panel">
-      <h3>Sign in</h3>
-      <p class="muted">Use a NIP-07 extension such as <a href="https://getalby.com" target="_blank" rel="noopener">Alby</a> or <a href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noopener">nos2x</a>. Your keys stay in the extension. Never paste an nsec or seed phrase into any website.</p>
-      <button id="btn-connect">Connect Nostr extension</button>
+    <section id="connect">
+      <div class="grid2">
+        <div class="panel gold">
+          <span class="eyebrow">On your phone</span>
+          <h3 style="margin-top:6px">Signer app</h3>
+          <p class="muted">Connect <a href="https://github.com/greenart7c3/Amber" target="_blank" rel="noopener">Amber</a> (Android), <a href="https://nsec.app" target="_blank" rel="noopener">nsec.app</a>, or any Nostr Connect (NIP-46) signer.</p>
+          <button id="btn-remote" style="width:100%">Connect signer app</button>
+          <div id="remote" class="hidden" style="margin-top:14px;text-align:center">
+            <a id="remote-open" class="btn" href="#" style="width:100%">Open in signer app</a>
+            <p class="small muted" style="margin:12px 0 6px">or scan with your signer on another device</p>
+            <div id="remote-qr" style="background:#fff;border-radius:14px;padding:10px;width:220px;margin:0 auto"></div>
+            <p class="small" id="remote-status" style="margin-top:10px"></p>
+            <details class="small muted" style="text-align:left"><summary>Show link</summary><div class="box mono" id="remote-uri"></div><button class="ghost" id="remote-copy" style="margin-top:6px">Copy</button></details>
+          </div>
+          <details style="margin-top:14px"><summary class="small muted">Have a bunker:// link instead?</summary>
+            <div class="row" style="margin-top:8px"><input id="bunker" placeholder="bunker://…" style="flex:1"><button class="ghost" id="btn-bunker">Connect</button></div>
+            <p class="small muted" id="bunker-status"></p>
+          </details>
+        </div>
+        <div class="panel">
+          <span class="eyebrow">On a computer</span>
+          <h3 style="margin-top:6px">Browser extension</h3>
+          <p class="muted">Use a NIP-07 extension such as <a href="https://getalby.com" target="_blank" rel="noopener">Alby</a> or <a href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noopener">nos2x</a>.</p>
+          <button id="btn-connect" class="ghost" style="width:100%">Connect extension</button>
+        </div>
+      </div>
       <p id="connect-err" class="err"></p>
+      <p class="small muted">Never paste an nsec or seed phrase into any website, including this one.</p>
     </section>
 
     <section id="setup" class="panel hidden" style="margin-top:16px">
       <h3>Start receiving boosts</h3>
-      <p class="muted">You don't have a nutzap profile yet. This creates a receiving key, saves it encrypted to you on Nostr (a NIP-60 wallet event, which only your extension can decrypt), and publishes which mints you accept (NIP-61). Any NIP-60 wallet can use the same key later.</p>
+      <p class="muted">You don't have a nutzap profile yet. This creates a receiving key, saves it encrypted to you on Nostr (a NIP-60 wallet event, which only your signer can decrypt), and publishes which mints you accept (NIP-61). Any NIP-60 wallet can use the same key later.</p>
       <label for="mints">Mints you accept (one per line)</label>
       <textarea id="mints">https://mint.minibits.cash/Bitcoin
 https://mint.coinos.io</textarea>

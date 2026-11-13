@@ -1,5 +1,8 @@
+import './pwa';
 import { getEncodedToken } from '@cashu/cashu-ts';
-import { DEFAULT_RELAYS, KIND_WALLET, nip07, npub, parseNutzapInfo, publish, type NutzapInfo } from '../lib/nostr';
+import QRCode from 'qrcode';
+import { DEFAULT_RELAYS, KIND_WALLET, npub, parseNutzapInfo, publish, type NutzapInfo } from '../lib/nostr';
+import { connectBunker, extensionSigner, forgetSession, hasExtension, restoreSession, startNostrConnect, type AppSigner, type PendingConnect } from '../lib/signer';
 import {
   fetchNutzaps,
   fetchOwn,
@@ -88,15 +91,17 @@ async function load() {
 }
 
 // ---------- sign in ----------
-$('btn-connect').addEventListener('click', async () => {
-  const ext = nip07();
-  if (!ext) {
-    $('connect-err').textContent = 'No Nostr extension found. Install Alby or nos2x, then reload this page.';
-    return;
-  }
+let signer: AppSigner | undefined;
+let pendingConnect: PendingConnect | undefined;
+
+async function signIn(s: AppSigner, knownPubkey?: string) {
+  signer = s;
+  pendingConnect?.cancel();
+  $('connect-err').textContent = '';
   try {
-    me = await ext.getPublicKey();
+    me = knownPubkey ?? (await s.getPublicKey());
     show('connect', false);
+    show('signed-in');
     $('status').textContent = 'Looking up your nutzap profile…';
     show('main');
     const own = await fetchOwn(me, DEFAULT_RELAYS);
@@ -104,9 +109,8 @@ $('btn-connect').addEventListener('click', async () => {
     if (info?.relays.length) relays = [...new Set([...info.relays, ...DEFAULT_RELAYS])];
 
     if (own.wallet) {
-      if (!ext.nip44) throw new Error('Your extension cannot decrypt NIP-44 messages. Try a recent Alby or nos2x.');
-      const w = parseWalletContent(await ext.nip44.decrypt(me, own.wallet.content));
-      privkey = w.privkey;
+      $('status').textContent = s.kind === 'remote' ? 'Approve the decrypt request in your signer app…' : 'Unlocking your receiving key…';
+      privkey = parseWalletContent(await s.nip44Decrypt(me, own.wallet.content)).privkey;
     }
 
     if (!info && !privkey) {
@@ -117,10 +121,61 @@ $('btn-connect').addEventListener('click', async () => {
     }
     await start();
   } catch (e) {
+    show('main', false);
+    show('signed-in', false);
     show('connect');
     $('connect-err').textContent = (e as Error).message;
   }
+}
+
+$('btn-connect').addEventListener('click', () => {
+  if (!hasExtension()) {
+    $('connect-err').textContent = 'No Nostr extension found. Install Alby or nos2x, or use a signer app below.';
+    return;
+  }
+  signIn(extensionSigner());
 });
+
+$('btn-remote').addEventListener('click', async () => {
+  pendingConnect?.cancel();
+  pendingConnect = startNostrConnect();
+  const { uri } = pendingConnect;
+  show('remote');
+  show('btn-remote', false);
+  $<HTMLAnchorElement>('remote-open').href = uri;
+  $('remote-qr').innerHTML = await QRCode.toString(uri, { type: 'svg', margin: 1 });
+  $('remote-uri').textContent = uri;
+  $('remote-status').textContent = 'Waiting for your signer app…';
+  pendingConnect.signer.then(
+    (s) => signIn(s),
+    (e) => {
+      if ((e as Error).name !== 'AbortError') $('remote-status').textContent = `Connection failed: ${(e as Error).message}`;
+    },
+  );
+});
+$('remote-copy').addEventListener('click', () => navigator.clipboard?.writeText(pendingConnect?.uri ?? ''));
+
+$('btn-bunker').addEventListener('click', async () => {
+  $('connect-err').textContent = '';
+  try {
+    $('bunker-status').textContent = 'Connecting… approve the request in your signer.';
+    signIn(await connectBunker($<HTMLInputElement>('bunker').value));
+  } catch (e) {
+    $('bunker-status').textContent = '';
+    $('connect-err').textContent = (e as Error).message;
+  }
+});
+
+$('signed-in').addEventListener('click', async () => {
+  forgetSession();
+  unwatch?.();
+  await signer?.close();
+  location.reload();
+});
+
+// Returning user with a saved signer-app session: reconnect without asking again.
+const saved = restoreSession();
+if (saved) signIn(saved.signer, saved.pubkey);
 
 let unwatch: (() => void) | undefined;
 async function start() {
@@ -155,18 +210,19 @@ function snippet() {
 
 // ---------- setup ----------
 $('btn-setup').addEventListener('click', async () => {
-  const ext = nip07()!;
+  const s = signer!;
   const mints = lines('mints');
   const rels = lines('relays');
   $('setup-err').textContent = '';
   try {
     if (!mints.length) throw new Error('Add at least one mint.');
     for (const m of [...mints, ...rels]) new URL(m);
-    if (!ext.nip44) throw new Error('Your extension cannot encrypt NIP-44 messages. Try a recent Alby or nos2x.');
+    if (s.kind === 'remote') $('setup-err').textContent = 'Approve 3 requests in your signer app: encrypt, then sign twice.';
     const key = newP2pkKey();
-    const encrypted = await ext.nip44.encrypt(me, walletContent(key.priv, mints));
-    const walletEv = await ext.signEvent({ kind: KIND_WALLET, created_at: Math.floor(Date.now() / 1000), content: encrypted, tags: [] });
-    const infoEv = await ext.signEvent(nutzapInfoTemplate(key.pub, mints, rels));
+    const encrypted = await s.nip44Encrypt(me, walletContent(key.priv, mints));
+    const walletEv = await s.signEvent({ kind: KIND_WALLET, created_at: Math.floor(Date.now() / 1000), content: encrypted, tags: [] });
+    const infoEv = await s.signEvent(nutzapInfoTemplate(key.pub, mints, rels));
+    $('setup-err').textContent = '';
     relays = [...new Set([...rels, ...DEFAULT_RELAYS])];
     await publish(relays, walletEv);
     await publish(relays, infoEv);

@@ -184,11 +184,27 @@ export function parseWalletContent(plain: string): { privkey?: string; mints: st
   return { privkey: tags.find((t) => t[0] === 'privkey')?.[1], mints: tags.filter((t) => t[0] === 'mint').map((t) => t[1]) };
 }
 
-export async function fetchOwn(pubkey: string, relays: string[]) {
+/**
+ * Newest copy of my nutzap profile (10019) and wallet key (17375).
+ * Each relay gets its own deadline so one hung relay can't stall sign-in. If *no* relay answers we throw
+ * instead of returning "nothing found": treating silence as "new user" could overwrite a real profile.
+ */
+export async function fetchOwn(pubkey: string, relays: string[], deadlineMs = 6000) {
   const pool = getPool();
-  const [info, wallet] = await Promise.all([
-    pool.get(relays, { kinds: [KIND_NUTZAP_INFO], authors: [pubkey] }, { maxWait: 4000 }),
-    pool.get(relays, { kinds: [KIND_WALLET], authors: [pubkey] }, { maxWait: 4000 }),
-  ]);
-  return { info, wallet };
+  let answered = 0;
+  const perRelay = await Promise.all(
+    relays.map(async (r): Promise<Event[]> => {
+      const res = await Promise.race([
+        pool.querySync([r], { kinds: [KIND_NUTZAP_INFO, KIND_WALLET], authors: [pubkey] }, { maxWait: deadlineMs - 500 }),
+        new Promise<null>((ok) => setTimeout(() => ok(null), deadlineMs)),
+      ]).catch(() => null);
+      if (res === null) return [];
+      answered++;
+      return res;
+    }),
+  );
+  const events: Event[] = perRelay.flat();
+  if (answered === 0) throw new Error("Couldn't reach any Nostr relay. Check your connection and try again.");
+  const newest = (kind: number) => events.filter((e) => e.kind === kind).sort((a, b) => b.created_at - a.created_at)[0] ?? null;
+  return { info: newest(KIND_NUTZAP_INFO), wallet: newest(KIND_WALLET) };
 }
