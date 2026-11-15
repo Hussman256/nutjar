@@ -334,7 +334,8 @@ export class CashuBoost extends HTMLElement {
           <span>${l.rail === 'none' ? '' : fmt(l.amount) + ' sats '}<span class="badge ${l.rail}">${RAIL_LABEL[l.rail]}</span></span></li>`).join('')}
       </ul>${mint ? `<div class="note" style="padding:0 12px 10px">Mint: ${esc(new URL(mint).host)}. Mint and routing fees, if any, come out of the last share.</div>` : ''}</details>
       ${payable ? `<button class="primary" data-act="invoice">Boost ${fmt(this.amount)} sats ⚡</button>
-      <div class="row" style="margin-top:8px"><button class="ghost" data-act="token">Pay with ecash instead</button></div>`
+      <div class="row" style="margin-top:8px"><button class="ghost" data-act="token">Pay with ecash instead</button></div>
+      <div class="note center"><a href="https://cashu.space/wallets" target="_blank" rel="noopener">No wallet yet? Get one in a minute →</a></div>`
       : `<div class="err">None of these recipients can receive Cashu yet.</div>`}
       ${this.error ? `<div class="err">${esc(this.error)}</div>` : ''}`;
   }
@@ -351,6 +352,7 @@ export class CashuBoost extends HTMLElement {
         ${webln ? '<button data-act="webln">Pay with browser wallet</button>' : ''}
       </div>
       <div class="row" style="margin-top:12px;align-items:center"><span class="spinner"></span><span class="note" style="margin:0">Waiting for payment. Your sats become ecash, then go to the creator.</span></div>
+      <div class="note center"><a href="https://cashu.space/wallets" target="_blank" rel="noopener">No wallet yet? Get one in a minute →</a></div>
       ${this.error ? `<div class="err">${esc(this.error)}</div>` : ''}
       <button class="ghost" style="margin-top:10px;width:100%" data-act="back">Cancel</button>`;
   }
