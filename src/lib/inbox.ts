@@ -113,6 +113,18 @@ export async function refreshStates(zaps: Nutzap[]): Promise<void> {
   );
 }
 
+/** Keep only proofs the mint says are still unspent (NUT-07). If the mint can't be asked, keep them all. */
+export async function unspent(mint: string, proofs: WireProof[]): Promise<WireProof[]> {
+  if (!proofs.length) return proofs;
+  try {
+    const wallet = await walletFor(mint);
+    const states = await wallet.checkProofsStates(proofs.map((p) => ({ secret: p.secret, id: p.id })));
+    return proofs.filter((_, i) => String(states[i]?.state) !== 'SPENT');
+  } catch {
+    return proofs;
+  }
+}
+
 export interface Redeemed {
   mint: string;
   amount: number;

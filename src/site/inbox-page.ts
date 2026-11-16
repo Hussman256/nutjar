@@ -15,9 +15,12 @@ import {
   refreshStates,
   walletContent,
   watchNutzaps,
+  unspent,
   type Nutzap,
   type Redeemed,
 } from '../lib/inbox';
+import { deleteTemplate, fetchWalletEvents, readTokens, signHistoryEvent, signTokenEvent, type HistoryRef, type TokenEvent } from '../lib/nip60';
+import type { Event } from 'nostr-tools/pure';
 import { fromWire, toWire, type WireProof } from '../lib/proofs';
 import { esc, zapHtml } from './zaplist';
 
@@ -31,7 +34,9 @@ let privkey: string | undefined;
 let info: NutzapInfo | null = null;
 const zaps = new Map<string, Nutzap>();
 
-// ---------- collected tokens, kept until dismissed ----------
+// ---------- balance: NIP-60 token events on my relays (encrypted to me) ----------
+// Collected ecash is written to Nostr so it survives a cleared browser and shows on every device.
+// Anything not yet saved to a relay waits in localStorage ("unsynced") and is retried; it is never dropped.
 const STORE = 'cashu-boost:collected';
 interface Kept { mint: string; amount: number; proofs: WireProof[] }
 const kept = (): Kept[] => {
@@ -48,29 +53,151 @@ const saveKept = (k: Kept[]) => {
     /* private mode: tokens are still on screen */
   }
 };
-const toRedeemed = (k: Kept): Redeemed => {
-  const proofs = k.proofs.map(fromWire);
-  return { mint: k.mint, amount: k.amount, proofs, token: getEncodedToken({ mint: k.mint, unit: 'sat', proofs }) };
-};
+const encode = (mint: string, proofs: WireProof[]) => getEncodedToken({ mint, unit: 'sat', proofs: proofs.map(fromWire) });
+const toRedeemed = (mint: string, proofs: WireProof[]): Redeemed => ({ mint, amount: sumWire(proofs), proofs: proofs.map(fromWire), token: encode(mint, proofs) });
+const sumWire = (p: WireProof[]) => p.reduce((t, x) => t + x.amount, 0);
+const fmt = (n: number) => n.toLocaleString('en-US');
 
-function renderKept() {
-  const list = kept();
-  show('collected', list.length > 0);
-  $('tokens').innerHTML = list
-    .map((k, i) => `<div style="margin-bottom:12px"><b>${k.amount.toLocaleString('en-US')} sats</b> <span class="small muted">${esc(new URL(k.mint).host)}</span>
-      <div class="box mono small">${esc(toRedeemed(k).token)}</div>
-      <div class="row" style="margin-top:6px"><button class="ghost" data-copy="${i}">Copy</button><button class="ghost" data-dismiss="${i}">I've saved it</button></div></div>`)
-    .join('');
-  $('tokens').querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
-    b.addEventListener('click', () => navigator.clipboard?.writeText(toRedeemed(kept()[Number(b.dataset.copy)]).token)),
-  );
-  $('tokens').querySelectorAll<HTMLButtonElement>('[data-dismiss]').forEach((b) =>
-    b.addEventListener('click', () => {
-      if (!confirm('Remove this token from this browser? Make sure it is in a wallet first.')) return;
-      saveKept(kept().filter((_, i) => i !== Number(b.dataset.dismiss)));
-      renderKept();
-    }),
-  );
+let tokens: TokenEvent[] = [];
+let balanceState: 'idle' | 'loading' | 'ready' | 'error' = 'idle';
+let balanceErr = '';
+
+/** Token events grouped by mint. */
+function byMint(): Map<string, TokenEvent[]> {
+  const m = new Map<string, TokenEvent[]>();
+  for (const t of tokens) m.set(t.mint, [...(m.get(t.mint) ?? []), t]);
+  return m;
+}
+
+/** Encrypt, sign and publish one token event. */
+async function saveToken(mint: string, proofs: WireProof[], del: string[] = []): Promise<Event> {
+  const ev = await signTokenEvent(signer!, me, mint, proofs, del);
+  await publish(relays, ev);
+  return ev;
+}
+
+async function logHistory(direction: 'in' | 'out', amount: number, refs: HistoryRef[], redeemed: { id: string; from: string }[] = []) {
+  try {
+    await publish(relays, await signHistoryEvent(signer!, me, direction, amount, refs, redeemed));
+  } catch {
+    /* history is nice to have; the balance is what matters */
+  }
+}
+
+async function deleteTokens(ids: string[]) {
+  if (!ids.length) return;
+  try {
+    await publish(relays, await signer!.signEvent(deleteTemplate(ids)));
+  } catch {
+    /* the replacing event's `del` already hides them from NIP-60 clients */
+  }
+}
+
+/** Push anything still only on this device up to the relays. */
+async function syncLocal(): Promise<void> {
+  let rest = kept();
+  for (const k of [...rest]) {
+    try {
+      const ev = await saveToken(k.mint, k.proofs);
+      rest = rest.filter((x) => x !== k);
+      saveKept(rest);
+      tokens.unshift({ id: ev.id, mint: k.mint, proofs: k.proofs, amount: sumWire(k.proofs), createdAt: ev.created_at });
+    } catch {
+      /* stays local, retried next time */
+    }
+  }
+}
+
+async function loadBalance(): Promise<void> {
+  if (!signer) return;
+  balanceState = 'loading';
+  renderBalance();
+  try {
+    const { tokens: evs, deleted } = await fetchWalletEvents(me, relays);
+    if (evs.length && signer.kind === 'remote') $('balance-note').textContent = `Approve ${evs.length} decrypt request(s) in your signer app to show your balance…`;
+    tokens = await readTokens(signer, me, evs, deleted);
+    // Drop proofs that were spent elsewhere (e.g. pasted into another wallet), and tidy the events up.
+    for (const [mint, list] of byMint()) {
+      const all = list.flatMap((t) => t.proofs);
+      const live = await unspent(mint, all);
+      if (live.length === all.length) continue;
+      const ids = list.map((t) => t.id);
+      tokens = tokens.filter((t) => t.mint !== mint);
+      if (live.length) {
+        const ev = await saveToken(mint, live, ids);
+        tokens.unshift({ id: ev.id, mint, proofs: live, amount: sumWire(live), createdAt: ev.created_at });
+      }
+      await deleteTokens(ids);
+    }
+    await syncLocal();
+    balanceState = 'ready';
+  } catch (e) {
+    balanceState = 'error';
+    balanceErr = (e as Error).message;
+  }
+  renderBalance();
+}
+
+function renderBalance() {
+  const local = kept();
+  const groups = [...byMint()];
+  const total = tokens.reduce((t, x) => t + x.amount, 0) + local.reduce((t, k) => t + k.amount, 0);
+  show('collected', balanceState !== 'idle' || local.length > 0);
+  $('balance-total').textContent = balanceState === 'loading' ? 'Loading…' : `${fmt(total)} sats`;
+  $('balance-note').textContent =
+    balanceState === 'error'
+      ? `Couldn't load your saved balance: ${balanceErr}`
+      : 'Saved on your Nostr relays, encrypted so only you can read it. Sign in on any device to see it.';
+  $('tokens').innerHTML =
+    groups
+      .map(([mint, list]) => {
+        const amount = list.reduce((t, x) => t + x.amount, 0);
+        return `<div class="row" style="justify-content:space-between;margin-bottom:8px"><span><b>${fmt(amount)} sats</b> <span class="small muted">${esc(new URL(mint).host)}</span></span>
+          <span><button class="ghost" data-export="${esc(mint)}">Move to a Cashu wallet</button></span></div>`;
+      })
+      .join('') +
+    (local.length
+      ? `<div class="notice" style="margin-top:8px">⚠️ ${fmt(local.reduce((t, k) => t + k.amount, 0))} sats are saved on this device only. <button class="ghost" id="btn-sync">Save to Nostr</button></div>`
+      : '') +
+    `<div id="export-box" class="hidden" style="margin-top:10px"><p class="small">Paste this token into any Cashu wallet (Minibits, cashu.me, eNuts…), then tap <b>Done</b>.</p>
+      <div class="box mono small" id="export-token"></div>
+      <div class="row" style="margin-top:6px"><button class="ghost" id="btn-export-copy">Copy</button><button id="btn-export-done">Done, it's in my wallet</button><button class="ghost" id="btn-export-cancel">Cancel</button></div></div>`;
+  $('tokens').querySelectorAll<HTMLButtonElement>('[data-export]').forEach((b) => b.addEventListener('click', () => openExport(b.dataset.export!)));
+  document.getElementById('btn-sync')?.addEventListener('click', async () => {
+    await syncLocal();
+    renderBalance();
+  });
+  $<HTMLButtonElement>('btn-melt').disabled = total === 0;
+}
+
+let exporting: string | undefined;
+function openExport(mint: string) {
+  exporting = mint;
+  const proofs = (byMint().get(mint) ?? []).flatMap((t) => t.proofs);
+  $('export-token').textContent = encode(mint, proofs);
+  show('export-box');
+  $('btn-export-copy').onclick = () => navigator.clipboard?.writeText($('export-token').textContent ?? '');
+  $('btn-export-cancel').onclick = () => show('export-box', false);
+  $('btn-export-done').onclick = async () => {
+    if (!exporting) return;
+    const list = byMint().get(exporting) ?? [];
+    const all = list.flatMap((t) => t.proofs);
+    const live = await unspent(exporting, all);
+    if (live.length === all.length && !confirm("The mint doesn't see this token as received yet. Remove it from your Nutjar balance anyway? Only do this if it's safely in another wallet.")) return;
+    const ids = list.map((t) => t.id);
+    if (live.length && live.length < all.length) {
+      // Part was received elsewhere: keep the rest.
+      const ev = await saveToken(exporting, live, ids);
+      tokens = tokens.filter((t) => t.mint !== exporting);
+      tokens.unshift({ id: ev.id, mint: exporting, proofs: live, amount: sumWire(live), createdAt: ev.created_at });
+    } else {
+      tokens = tokens.filter((t) => t.mint !== exporting);
+    }
+    await deleteTokens(ids);
+    await logHistory('out', sumWire(all) - (live.length < all.length ? sumWire(live) : 0), ids.map((id) => ({ id, marker: 'destroyed' as const })));
+    exporting = undefined;
+    renderBalance();
+  };
 }
 
 // ---------- boosts ----------
@@ -186,6 +313,7 @@ async function start() {
   $<HTMLAnchorElement>('my-link-open').href = link;
   $('my-qr').innerHTML = await QRCode.toString(link, { type: 'svg', margin: 1 });
   await load();
+  await loadBalance();
   unwatch?.();
   unwatch = watchNutzaps(me, relays, async (z) => {
     if (zaps.has(z.id)) return;
@@ -252,14 +380,24 @@ $('btn-collect').addEventListener('click', async () => {
   try {
     const all = [...zaps.values()];
     await refreshStates(all);
+    const claimed = all.filter((z) => z.state === 'unclaimed');
     const got = await redeem(all, privkey);
-    saveKept([...kept(), ...got.map((r) => ({ mint: r.mint, amount: r.amount, proofs: r.proofs.map(toWire) }))]);
+    // Safety first: the fresh ecash goes to this device before anything else can fail.
+    const fresh: Kept[] = got.map((r) => ({ mint: r.mint, amount: r.amount, proofs: r.proofs.map(toWire) }));
+    saveKept([...kept(), ...fresh]);
     await refreshStates(all);
-    renderKept();
+    render();
+    renderBalance();
+    // Then save to Nostr (NIP-60) and record which nutzaps were redeemed (NIP-61).
+    const before = new Set(tokens.map((t) => t.id));
+    await syncLocal();
+    const created = tokens.filter((t) => !before.has(t.id)).map((t) => ({ id: t.id, marker: 'created' as const }));
+    if (created.length) await logHistory('in', got.reduce((t, r) => t + r.amount, 0), created, claimed.map((z) => ({ id: z.id, from: z.from })));
   } catch (e) {
     $('collect-err').textContent = (e as Error).message;
   }
   render();
+  renderBalance();
 });
 
 $('btn-melt').addEventListener('click', async () => {
@@ -270,22 +408,50 @@ $('btn-melt').addEventListener('click', async () => {
   }
   const btn = $<HTMLButtonElement>('btn-melt');
   btn.disabled = true;
+  $('melt-out').textContent = 'Sending…';
   const msgs: string[] = [];
-  let remaining = kept();
-  for (const k of [...remaining]) {
+  await syncLocal();
+  for (const [mint, list] of byMint()) {
+    const ids = list.map((t) => t.id);
     try {
-      const res = await meltToAddress(toRedeemed(k), address);
-      remaining = remaining.filter((x) => x !== k);
-      if (res.change) remaining.push({ mint: k.mint, amount: res.change.amount, proofs: res.change.proofs.map(toWire) });
-      msgs.push(`<span class="ok">Sent ${res.paid} sats to ${esc(address)}.</span>`);
+      const live = await unspent(mint, list.flatMap((t) => t.proofs));
+      if (!live.length) throw new Error('Already spent elsewhere.');
+      const res = await meltToAddress(toRedeemed(mint, live), address);
+      tokens = tokens.filter((t) => t.mint !== mint);
+      const refs: HistoryRef[] = ids.map((id) => ({ id, marker: 'destroyed' }));
+      if (res.change) {
+        const change = res.change.proofs.map(toWire);
+        try {
+          const ev = await saveToken(mint, change, ids);
+          tokens.unshift({ id: ev.id, mint, proofs: change, amount: sumWire(change), createdAt: ev.created_at });
+          refs.push({ id: ev.id, marker: 'created' });
+        } catch {
+          saveKept([...kept(), { mint, amount: res.change.amount, proofs: change }]);
+        }
+      }
+      await deleteTokens(ids);
+      await logHistory('out', res.paid, refs);
+      msgs.push(`<span class="ok">Sent ${fmt(res.paid)} sats to ${esc(address)}.</span>`);
+    } catch (e) {
+      msgs.push(`<span class="err">${esc(new URL(mint).host)}: ${esc((e as Error).message)}</span>`);
+    }
+  }
+  // Anything that still couldn't be saved to Nostr can be cashed out straight from this device.
+  let rest = kept();
+  for (const k of [...rest]) {
+    try {
+      const res = await meltToAddress(toRedeemed(k.mint, k.proofs), address);
+      rest = rest.filter((x) => x !== k);
+      if (res.change) rest.push({ mint: k.mint, amount: res.change.amount, proofs: res.change.proofs.map(toWire) });
+      msgs.push(`<span class="ok">Sent ${fmt(res.paid)} sats to ${esc(address)}.</span>`);
     } catch (e) {
       msgs.push(`<span class="err">${esc(new URL(k.mint).host)}: ${esc((e as Error).message)}</span>`);
     }
-    saveKept(remaining);
+    saveKept(rest);
   }
-  $('melt-out').innerHTML = msgs.join('<br>');
+  $('melt-out').innerHTML = msgs.join('<br>') || 'Nothing to send.';
   btn.disabled = false;
-  renderKept();
+  renderBalance();
 });
 
-renderKept();
+renderBalance();

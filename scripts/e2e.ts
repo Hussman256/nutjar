@@ -1,12 +1,15 @@
 // End-to-end check of the boost engine against testnut.cashu.space (fake Lightning, auto-paid invoices).
 // Run: npm run e2e
 import { Wallet } from '@cashu/cashu-ts';
-import { generateSecretKey, getPublicKey, verifyEvent, type Event } from 'nostr-tools/pure';
+import { finalizeEvent, generateSecretKey, getPublicKey, verifyEvent, type Event } from 'nostr-tools/pure';
+import * as nip44 from 'nostr-tools/nip44';
+import { deleteTemplate, readTokens, signHistoryEvent, signTokenEvent, type Nip60Signer } from '../src/lib/nip60';
+import { unspent } from '../src/lib/inbox';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { deliver, fundWithInvoice, loadWallet, plan, type Recipient } from '../src/lib/boost';
 import { ephemeralSigner } from '../src/lib/nostr';
-import { sum } from '../src/lib/proofs';
+import { fromWire, sum, toWire } from '../src/lib/proofs';
 import { allocate } from '../src/lib/splits';
 
 const MINT = 'https://testnut.cashu.space';
@@ -124,6 +127,40 @@ const paidQuote = await invoiceWallet.checkMintQuoteBolt11(issued.at(-1)!.quote)
 check(String(paidQuote.state) === 'PAID', `recipient's invoice is paid (${paidQuote.state})`);
 console.log(`      delivered ${lnOutcome.results[0]?.sent} sats, change back to listener: ${lnOutcome.change?.amount ?? 0}`);
 server.close();
+
+// ---------- NIP-60: collected ecash stored on Nostr, encrypted to the creator ----------
+console.log('\nNIP-60 balance storage');
+{
+  const sk = generateSecretKey();
+  const me = getPublicKey(sk);
+  const ck = nip44.getConversationKey(sk, me);
+  const signer: Nip60Signer = {
+    signEvent: async (t) => finalizeEvent(t, sk),
+    nip44Encrypt: async (_pk, text) => nip44.encrypt(text, ck),
+    nip44Decrypt: async (_pk, text) => nip44.decrypt(text, ck),
+  };
+  const f = await fundWithInvoice(wallet, 64, "e2e nip60");
+  const orig = await f.wait();
+  const split = await wallet.send(10, orig); // swaps: the original proofs are now spent
+  const minted = [...split.keep, ...split.send].map(toWire);
+  const first = await signTokenEvent(signer, me, MINT, minted);
+  check(first.kind === 7375 && verifyEvent(first) && !first.content.includes(minted[0].secret), "token event is a signed kind 7375 with encrypted proofs");
+  let live = await readTokens(signer, me, [first], new Set());
+  check(live.length === 1 && live[0].amount === sum(minted) && minted.length > 1, `balance reads back from the event: ${live[0]?.amount} sats in ${minted.length} proofs`);
+  const second = await signTokenEvent(signer, me, MINT, minted.slice(1), [first.id]);
+  live = await readTokens(signer, me, [first, second], new Set());
+  check(live.length === 1 && live[0].id === second.id, "a replacing event (del) hides the old one");
+  live = await readTokens(signer, me, [first, second], new Set([second.id]));
+  check(live.length === 1 && live[0].id === first.id, "a deleted event (kind 5) is ignored");
+  const del = deleteTemplate([first.id]);
+  check(del.kind === 5 && del.tags.some((t) => t[0] === "k" && t[1] === "7375"), "deletion is kind 5 tagged k=7375");
+  const hist = await signHistoryEvent(signer, me, "in", 64, [{ id: first.id, marker: "created" }], [{ id: "ab".repeat(32), from: "cd".repeat(32) }]);
+  const histPlain = JSON.parse(await signer.nip44Decrypt(me, hist.content)) as string[][];
+  check(hist.kind === 7376 && histPlain.some((t) => t[0] === "direction" && t[1] === "in"), "history event records direction in, encrypted");
+  check(hist.tags.some((t) => t[0] === "e" && t[3] === "redeemed"), "history marks the nutzap as redeemed (public tag)");
+  check((await unspent(MINT, orig.map(toWire))).length === 0, "proofs spent elsewhere are detected and dropped");
+  check((await unspent(MINT, minted)).length === minted.length, "unspent proofs are kept");
+}
 
 console.log(failures ? `\n${failures} check(s) failed` : '\nAll checks passed');
 process.exit(failures ? 1 : 0);

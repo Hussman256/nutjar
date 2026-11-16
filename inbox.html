@@ -91,12 +91,13 @@ https://mint.coinos.io</textarea>
             <h3>Collect</h3>
             <p class="muted" id="collect-summary">Nothing to collect yet.</p>
             <button id="btn-collect" disabled>Collect all</button>
-            <p class="small muted">Collecting unlocks the ecash with your key and swaps it for fresh tokens you can paste into any Cashu wallet, or cash out over Lightning below.</p>
+            <p class="small muted">Collecting unlocks the ecash with your key and adds it to your balance below. Keep it there, move it to any Cashu wallet, or cash out over Lightning.</p>
             <p id="collect-err" class="err"></p>
           </div>
           <div class="panel hidden" id="collected" style="margin-top:16px">
-            <h3>Collected ecash</h3>
-            <p class="small muted">Saved in this browser until you dismiss it. Copy it to a wallet now.</p>
+            <h3>Your balance</h3>
+            <div class="big" id="balance-total" style="font:800 34px/1.1 var(--display);margin:4px 0 6px">0 sats</div>
+            <p class="small muted" id="balance-note"></p>
             <div id="tokens"></div>
             <label for="ln">Or send it to your lightning address</label>
             <div class="row"><input id="ln" placeholder="you@getalby.com" style="flex:1"><button id="btn-melt">Send</button></div>
