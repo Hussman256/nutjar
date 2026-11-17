@@ -81,3 +81,5 @@ Everything in this repository was written during Nut November 2026 (started 12 N
 ## License
 
 MIT
+
+Sound effects on the NUTJAR BOY game pad are from [Kenney.nl](https://kenney.nl) (Casino Audio and Interface Sounds), released under CC0. Licence files are in `src/site/sfx/`.

@@ -11,7 +11,21 @@ type BoostEl = HTMLElement & {
 const fmt = (n: number) => n.toLocaleString('en-US');
 const SOUND_KEY = 'nutjar:sound';
 
-// ---------- sound: tiny synthesized blips, no files ----------
+// ---------- sound: real sound effects (Kenney.nl, CC0; see sfx/LICENSE-*) ----------
+// Loaded only once someone turns the sound on, so fans who never do download nothing.
+import clickUrl from './sfx/click_001.mp3?url';
+import bongUrl from './sfx/bong_001.mp3?url';
+import toggleUrl from './sfx/toggle_001.mp3?url';
+import chipLayUrl from './sfx/chip-lay-1.mp3?url';
+import confirm1Url from './sfx/confirmation_001.mp3?url';
+import collide1Url from './sfx/chips-collide-1.mp3?url';
+import collide3Url from './sfx/chips-collide-3.mp3?url';
+import stackUrl from './sfx/chips-stack-3.mp3?url';
+import confirm2Url from './sfx/confirmation_002.mp3?url';
+
+const FILES = { click: clickUrl, bong: bongUrl, toggle: toggleUrl, chipLay: chipLayUrl, confirm1: confirm1Url, collide1: collide1Url, collide3: collide3Url, stack: stackUrl, confirm2: confirm2Url };
+type Sound = keyof typeof FILES;
+
 let ctx: AudioContext | undefined;
 let soundOn = false;
 try {
@@ -19,37 +33,69 @@ try {
 } catch {
   /* storage blocked: sound starts off */
 }
+const buffers = new Map<Sound, AudioBuffer>();
+let loading: Promise<void> | undefined;
 
-function tone(freq: number, ms: number, opts: { type?: OscillatorType; vol?: number; to?: number; at?: number } = {}) {
-  if (!soundOn) return;
+function audio(): AudioContext | undefined {
   try {
     ctx ??= new AudioContext();
     if (ctx.state === 'suspended') void ctx.resume();
-    const t = ctx.currentTime + (opts.at ?? 0) / 1000;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = opts.type ?? 'square';
-    osc.frequency.setValueAtTime(freq, t);
-    if (opts.to) osc.frequency.exponentialRampToValueAtTime(opts.to, t + ms / 1000);
-    gain.gain.setValueAtTime(opts.vol ?? 0.04, t);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(t);
-    osc.stop(t + ms / 1000 + 0.02);
+    return ctx;
   } catch {
-    /* no audio on this device */
+    return undefined;
   }
 }
 
+function loadSounds(): Promise<void> {
+  const c = audio();
+  if (!c) return Promise.resolve();
+  return (loading ??= Promise.all(
+    (Object.keys(FILES) as Sound[]).map(async (k) => {
+      try {
+        const res = await fetch(FILES[k]);
+        buffers.set(k, await c.decodeAudioData(await res.arrayBuffer()));
+      } catch {
+        /* that one stays silent */
+      }
+    }),
+  ).then(() => undefined));
+}
+
+function play(name: Sound, opts: { at?: number; rate?: number; vol?: number } = {}) {
+  if (!soundOn) return;
+  const c = audio();
+  const buf = buffers.get(name);
+  if (!c || !buf) {
+    void loadSounds();
+    return;
+  }
+  const src = c.createBufferSource();
+  src.buffer = buf;
+  src.playbackRate.value = opts.rate ?? 1;
+  const gain = c.createGain();
+  gain.gain.value = opts.vol ?? 0.8;
+  src.connect(gain).connect(c.destination);
+  src.start(c.currentTime + (opts.at ?? 0) / 1000);
+}
+
+// A little pitch wobble so holding a key doesn't sound like a machine gun.
+const wobble = () => 0.94 + Math.random() * 0.12;
 const sfx = {
-  up: () => tone(660, 70, { to: 990 }),
-  down: () => tone(520, 70, { to: 330 }),
-  wall: () => tone(110, 120, { type: 'sawtooth', vol: 0.03 }),
-  boost: () => [523, 659, 784].forEach((f, i) => tone(f, 90, { at: i * 70 })),
+  up: () => play('click', { rate: 1.18 * wobble(), vol: 0.7 }),
+  down: () => play('click', { rate: 0.86 * wobble(), vol: 0.7 }),
+  wall: () => play('bong', { rate: 0.8, vol: 0.6 }),
+  toggle: () => play('toggle', { vol: 0.7 }),
+  boost: () => {
+    play('chipLay', { vol: 0.9 });
+    play('confirm1', { at: 120, vol: 0.6 });
+  },
+  // Nuts rattling into the jar, then a happy chime.
   landed: () => {
-    tone(988, 90, { at: 0 });
-    tone(1319, 420, { at: 90, vol: 0.05 });
-    [1568, 2093].forEach((f, i) => tone(f, 120, { at: 420 + i * 90, type: 'triangle', vol: 0.03 }));
+    play('collide1', { vol: 0.9 });
+    play('collide3', { at: 110, rate: 1.08, vol: 0.85 });
+    play('stack', { at: 230, vol: 0.9 });
+    play('collide1', { at: 380, rate: 1.15, vol: 0.6 });
+    play('confirm2', { at: 520, vol: 0.7 });
   },
 };
 const buzz = (p: number | number[]) => {
@@ -103,9 +149,10 @@ export function enhancePad(pad: HTMLElement, widgetEl: HTMLElement, opts: { name
       /* fine */
     }
     paintSnd();
-    sfx.up();
+    if (soundOn) void loadSounds().then(sfx.toggle);
   });
   pad.querySelector('.console-top')!.append(snd);
+  if (soundOn) void loadSounds();
 
   // The LCD strip: amount readout and a power meter that charges as the amount grows.
   const lcd = document.createElement('div');
