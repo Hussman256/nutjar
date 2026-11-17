@@ -22,7 +22,7 @@ import {
 import { deleteTemplate, fetchWalletEvents, readTokens, signHistoryEvent, signTokenEvent, type HistoryRef, type TokenEvent } from '../lib/nip60';
 import type { Event } from 'nostr-tools/pure';
 import { fromWire, toWire, type WireProof } from '../lib/proofs';
-import { esc, zapHtml } from './zaplist';
+import { esc, feedHtml } from './zaplist';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const show = (id: string, on = true) => $(id).classList.toggle('hidden', !on);
@@ -61,6 +61,7 @@ const fmt = (n: number) => n.toLocaleString('en-US');
 let tokens: TokenEvent[] = [];
 let balanceState: 'idle' | 'loading' | 'ready' | 'error' = 'idle';
 let balanceErr = '';
+let lastTotal = -1; // -1 until the first load, so the jar doesn't "pour" on page open
 
 /** The token events with every proof counted once, even if two events hold the same proof. */
 function liveTokens(): TokenEvent[] {
@@ -169,20 +170,34 @@ function renderBalance() {
     balanceState === 'error'
       ? `Couldn't load your saved balance: ${balanceErr}`
       : 'Saved on your Nostr relays, encrypted so only you can read it. Sign in on any device to see it.';
+  // The jar fills with the balance: roughly by orders of magnitude, so 100 sats already looks like something.
+  const fill = total <= 0 ? 0 : Math.min(0.95, 0.2 + Math.log10(total) / 6);
+  const card = $('jar-card');
+  card.style.setProperty('--fill', String(fill));
+  if (balanceState === 'ready' && total > lastTotal && lastTotal >= 0) {
+    card.classList.remove('pour');
+    void card.offsetWidth;
+    card.classList.add('pour');
+  }
+  if (balanceState === 'ready') lastTotal = total;
   $('tokens').innerHTML =
+    (groups.length ? '' : '<p class="small muted">Nothing here yet.</p>') +
     groups
       .map(([mint, list]) => {
         const amount = list.reduce((t, x) => t + x.amount, 0);
-        return `<div class="row" style="justify-content:space-between;margin-bottom:8px"><span><b>${fmt(amount)} sats</b> <span class="small muted">${esc(new URL(mint).host)}</span></span>
-          <span><button class="ghost" data-export="${esc(mint)}">Move to a Cashu wallet</button></span></div>`;
+        return `<div class="mint-row"><span><b>${fmt(amount)} sats</b> <span class="small muted">${esc(new URL(mint).host)}</span></span>
+          <button class="ghost small-btn" data-export="${esc(mint)}">Move</button></div>`;
       })
       .join('') +
     (local.length
-      ? `<div class="notice" style="margin-top:8px">⚠️ ${fmt(local.reduce((t, k) => t + k.amount, 0))} sats are saved on this device only. <button class="ghost" id="btn-sync">Save to Nostr</button></div>`
+      ? `<div class="notice" style="margin-top:8px">⚠️ ${fmt(local.reduce((t, k) => t + k.amount, 0))} sats are saved on this device only. <button class="ghost small-btn" id="btn-sync">Save to Nostr</button></div>`
       : '') +
-    `<div id="export-box" class="hidden" style="margin-top:10px"><p class="small">Paste this token into any Cashu wallet (Minibits, cashu.me, eNuts…), then tap <b>Done</b>.</p>
-      <div class="box mono small" id="export-token"></div>
-      <div class="row" style="margin-top:6px"><button class="ghost" id="btn-export-copy">Copy</button><button id="btn-export-done">Done, it's in my wallet</button><button class="ghost" id="btn-export-cancel">Cancel</button></div></div>`;
+    `<div id="export-box" class="hidden" style="margin-top:10px">
+      <p class="small"><b>This token is your money.</b> Open it in your wallet, scan the QR, or copy and paste it. Don't share it with anyone else. Then tap <b>Done</b>.</p>
+      <a class="btn" id="btn-export-open" style="width:100%">Open in wallet app</a>
+      <div class="qr export-qr" id="export-qr"></div>
+      <details class="small muted"><summary>Show token</summary><div class="box mono small" id="export-token"></div></details>
+      <div class="row" style="margin-top:10px"><button class="ghost small-btn" id="btn-export-copy">Copy</button><button class="small-btn" id="btn-export-done">Done, it's in my wallet</button><button class="ghost small-btn" id="btn-export-cancel">Cancel</button></div></div>`;
   $('tokens').querySelectorAll<HTMLButtonElement>('[data-export]').forEach((b) => b.addEventListener('click', () => openExport(b.dataset.export!)));
   document.getElementById('btn-sync')?.addEventListener('click', async () => {
     await syncLocal();
@@ -195,7 +210,21 @@ let exporting: string | undefined;
 function openExport(mint: string) {
   exporting = mint;
   const proofs = (byMint().get(mint) ?? []).flatMap((t) => t.proofs);
-  $('export-token').textContent = encode(mint, proofs);
+  const token = encode(mint, proofs);
+  $('export-token').textContent = token;
+  // cashu: links open Cashu wallets on phones (Minibits, cashu.me, eNuts register for it).
+  $<HTMLAnchorElement>('btn-export-open').href = `cashu:${token}`;
+  $('export-qr').innerHTML = '';
+  show('export-qr', false);
+  QRCode.toString(token, { type: 'svg', margin: 1, errorCorrectionLevel: 'L' }).then(
+    (svg) => {
+      $('export-qr').innerHTML = svg;
+      show('export-qr');
+    },
+    () => {
+      /* too many proofs to fit one QR: open or copy instead */
+    },
+  );
   show('export-box');
   $('btn-export-copy').onclick = () => navigator.clipboard?.writeText($('export-token').textContent ?? '');
   $('btn-export-cancel').onclick = () => show('export-box', false);
@@ -224,10 +253,16 @@ function openExport(mint: string) {
 // ---------- boosts ----------
 function render() {
   const list = [...zaps.values()].sort((a, b) => b.createdAt - a.createdAt);
-  $('zaps').innerHTML = list.length ? list.map((z) => zapHtml(z)).join('') : '<p class="muted">No boosts yet. Share your embed code!</p>';
+  $('zaps').innerHTML = list.length
+    ? list.map((z) => feedHtml(z)).join('')
+    : '<div class="empty-feed"><b>Your jar is waiting</b>Share your boost link and the first message will land here.</div>';
+  $('zap-count').textContent = list.length ? String(list.length) : '';
   const open = list.filter((z) => z.state === 'unclaimed');
   const total = open.reduce((t, z) => t + z.amount, 0);
-  $('collect-summary').textContent = open.length ? `${total.toLocaleString('en-US')} sats in ${open.length} boost(s) waiting.` : 'Nothing to collect right now.';
+  $('collect-summary').textContent = open.length
+    ? `${total.toLocaleString('en-US')} sats in ${open.length} new boost${open.length === 1 ? '' : 's'}`
+    : 'Nothing new to collect';
+  $('collect-strip').classList.toggle('has-new', open.length > 0 && !!privkey);
   $<HTMLButtonElement>('btn-collect').disabled = !open.length || !privkey;
 }
 
@@ -249,6 +284,7 @@ async function signIn(s: AppSigner, knownPubkey?: string) {
   try {
     me = knownPubkey ?? (await s.getPublicKey());
     show('connect', false);
+    show('lede', false); // signed in: the jar is the intro now
     show('signed-in');
     $('status').textContent = 'Looking up your nutzap profile…';
     show('main');
@@ -271,6 +307,7 @@ async function signIn(s: AppSigner, knownPubkey?: string) {
   } catch (e) {
     show('main', false);
     show('signed-in', false);
+    show('lede');
     show('connect');
     $('connect-err').textContent = (e as Error).message;
   }

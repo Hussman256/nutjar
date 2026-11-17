@@ -117,6 +117,84 @@ details summary { cursor: pointer; }
 .flash { animation: flash 1.4s ease-out; }
 @keyframes flash { from { background: color-mix(in srgb, var(--gold) 45%, transparent); } to { background: transparent; } }
 
+/* ---------- creator app (inbox) ---------- */
+.status-line { font-size: 14px; color: var(--ink-2); margin: 4px 0 18px; }
+.status-line .mono { font-size: 12px; background: var(--paper-2); padding: 2px 7px; border-radius: 6px; }
+.jar-card { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 28px; align-items: center; background: var(--card); border: var(--edge); border-radius: 28px; padding: 24px 28px; box-shadow: 6px 6px 0 var(--ink); position: relative; overflow: hidden; }
+.jar-card::before { content: ""; position: absolute; inset: auto -60px -90px auto; width: 260px; height: 260px; border-radius: 50%; background: color-mix(in srgb, var(--gold) 30%, transparent); pointer-events: none; }
+.jar-art { display: grid; place-items: center; }
+.jar-mini { width: 100%; max-width: 190px; height: auto; overflow: visible; }
+.jar-nuts { transform: translateY(calc((1 - var(--fill, 0)) * 230px)); transition: transform 1.2s cubic-bezier(.2, .9, .3, 1.15); }
+.jar-card .drop { animation: none; opacity: 0; }
+.jar-card.pour .drop { animation: drop 1.4s cubic-bezier(.45, 0, .9, .55) 2; }
+.jar-card.pour .drop.d2 { animation-delay: .3s; } .jar-card.pour .drop.d3 { animation-delay: .6s; }
+.jar-body { position: relative; min-width: 0; }
+.jar-total { font: 800 clamp(44px, 8vw, 76px)/1 var(--display); letter-spacing: -.045em; margin: 8px 0 6px; }
+.jar-note { margin: 0 0 16px; max-width: 520px; }
+.collect-strip { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; background: var(--paper); border: 2px dashed var(--line); border-radius: 16px; padding: 12px 12px 12px 16px; }
+.collect-strip > div { display: grid; gap: 2px; min-width: 0; }
+.collect-strip.has-new { background: color-mix(in srgb, var(--pop) 10%, var(--card)); border: 2px solid var(--pop); }
+.collect-strip.has-new #btn-collect { animation: nudge 1.8s ease-in-out infinite; }
+@keyframes nudge { 0%, 70%, 100% { transform: none; } 80% { transform: rotate(-3deg) scale(1.04); } 90% { transform: rotate(3deg) scale(1.04); } }
+.take-out { margin-top: 16px; }
+.take-out > summary { font: 750 16px var(--display); letter-spacing: -.01em; list-style: none; display: inline-flex; align-items: center; gap: 8px; }
+.take-out > summary::-webkit-details-marker { display: none; }
+.take-out > summary::after { content: "↓"; font-size: 15px; transition: transform .2s; }
+.take-out[open] > summary::after { transform: rotate(180deg); }
+.take-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 12px; }
+.take-opt { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 14px; min-width: 0; }
+.take-opt h4 { margin: 0 0 2px; font: 750 15px var(--display); }
+.take-opt p { margin: 0 0 10px; }
+.mint-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.export-qr { width: 200px; margin: 10px auto; }
+.small-btn, button.small-btn { font-size: 14px; padding: 9px 14px; border-radius: 12px; box-shadow: 3px 3px 0 var(--ink); }
+
+.inbox-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 22px; align-items: start; margin-top: 26px; }
+.side { display: grid; gap: 22px; min-width: 0; }
+.feed-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
+.feed-head h3 { margin: 0; }
+.count { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 99px; background: var(--ink); color: var(--paper); font: 800 13px var(--body); vertical-align: 3px; margin-left: 4px; }
+.count:empty { display: none; }
+.feed { display: grid; gap: 4px; }
+.fz { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; padding: 14px 0; border-top: 1px dashed var(--line); }
+.fz:first-child { border-top: 0; }
+.fz .av { width: 44px; height: 44px; border-radius: 50%; border: var(--edge); display: grid; place-items: center; font: 800 18px var(--display); color: #1d140c; }
+.fz .top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.fz .nm { font-weight: 700; overflow-wrap: anywhere; }
+.fz .amt { font: 800 19px var(--display); white-space: nowrap; }
+.fz .amt small { font: 600 12px var(--body); color: var(--muted); }
+.fz .bub { margin-top: 6px; background: var(--paper); border: 1px solid var(--line); border-radius: 4px 16px 16px 16px; padding: 10px 13px; font-size: 15px; overflow-wrap: anywhere; }
+.fz .bub.empty { color: var(--muted); font-style: italic; }
+.fz .meta { margin-top: 6px; font-size: 12px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.fz.is-new .bub { background: color-mix(in srgb, var(--gold) 22%, var(--card)); border-color: var(--gold); }
+.empty-feed { text-align: center; padding: 26px 10px; color: var(--muted); }
+.empty-feed b { display: block; font: 800 20px var(--display); color: var(--ink); margin-bottom: 4px; }
+
+.share-card h3 { margin-top: 6px; }
+.share-row { display: flex; gap: 16px; align-items: center; margin: 12px 0; }
+.share-row .qr { width: 132px; flex: none; padding: 8px; border-radius: 14px; }
+.share-actions { display: grid; gap: 10px; flex: 1; }
+.share-actions > * { width: 100%; }
+.share-card .box { max-height: 64px; }
+.embed-card summary { list-style: none; display: flex; justify-content: space-between; align-items: center; }
+.embed-card summary::-webkit-details-marker { display: none; }
+.embed-card summary h3 { margin: 0; font-size: 18px; }
+.embed-card summary::after { content: "+"; font: 800 24px/1 var(--display); transition: transform .2s; }
+.embed-card[open] summary::after { transform: rotate(45deg); }
+.embed-card pre { margin-top: 14px; }
+
+@media (max-width: 880px) {
+  .inbox-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .jar-card { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 18px; border-radius: 22px; }
+  .jar-art { justify-items: start; }
+  .jar-mini { max-width: 104px; }
+  .collect-strip button { width: 100%; }
+  .take-grid { grid-template-columns: minmax(0, 1fr); }
+  .share-row .qr { width: 110px; }
+}
+
 /* ---------- sections ---------- */
 section.band { padding: 96px 0 0; }
 .section-head { display: flex; justify-content: space-between; align-items: end; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; }

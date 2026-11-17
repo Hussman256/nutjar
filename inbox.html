@@ -34,7 +34,7 @@
       <h1 style="margin-bottom:6px">Your boosts</h1>
       <button class="ghost hidden" id="signed-in" style="margin-bottom:14px">Sign out</button>
     </div>
-    <p class="lede">Messages and ecash from your listeners. Sign in with Nostr. Your private key stays in your extension or signer app, and Nutjar never asks for it.</p>
+    <p class="lede" id="lede">Messages and ecash from your listeners. Sign in with Nostr. Your private key stays in your extension or signer app, and Nutjar never asks for it.</p>
 
     <section id="connect">
       <div class="grid2">
@@ -80,41 +80,115 @@ https://mint.coinos.io</textarea>
     </section>
 
     <section id="main" class="hidden">
-      <div class="notice" id="status" style="margin-top:16px"></div>
-      <div class="grid2" style="margin-top:16px">
-        <div class="panel">
-          <div class="row" style="justify-content:space-between"><h3>Boosts</h3><button class="ghost" id="btn-refresh">Refresh</button></div>
-          <div id="zaps"><p class="muted">Loading from relays…</p></div>
+      <p class="status-line" id="status"></p>
+
+      <!-- The jar: balance, collecting, taking money out -->
+      <div class="jar-card" id="jar-card">
+        <div class="jar-art" aria-hidden="true">
+          <svg viewBox="0 0 320 400" class="jar-mini">
+            <defs>
+              <symbol id="i-nut" viewBox="0 0 60 100">
+                <path d="M30 4c-14 0-23 10-23 22 0 6 3 10 6 14-3 4-6 9-6 16 0 12 9 22 23 22s23-10 23-22c0-7-3-12-6-16 3-4 6-8 6-14 0-12-9-22-23-22z" fill="#d39a5c" stroke="#1d140c" stroke-width="4"/>
+                <g fill="#8a5424" opacity=".5"><circle cx="22" cy="20" r="3"/><circle cx="36" cy="28" r="3"/><circle cx="26" cy="58" r="3"/><circle cx="38" cy="66" r="3"/></g>
+              </symbol>
+              <clipPath id="i-jar-clip"><path d="M84 92c-30 10-50 40-50 80v150c0 26 20 42 46 42h140c26 0 46-16 46-42V172c0-40-20-70-50-80z"/></clipPath>
+            </defs>
+            <use href="#i-nut" class="drop d1" x="110" y="150" width="34" height="56"/>
+            <use href="#i-nut" class="drop d2" x="160" y="140" width="34" height="56"/>
+            <use href="#i-nut" class="drop d3" x="200" y="160" width="34" height="56"/>
+            <path d="M84 92c-30 10-50 40-50 80v150c0 26 20 42 46 42h140c26 0 46-16 46-42V172c0-40-20-70-50-80z" fill="#cfe8ff" opacity=".45"/>
+            <g clip-path="url(#i-jar-clip)">
+              <g class="jar-nuts" id="jar-nuts">
+                <use href="#i-nut" x="40" y="300" width="44" height="72" transform="rotate(-30 62 336)"/>
+                <use href="#i-nut" x="86" y="306" width="44" height="72" transform="rotate(50 108 342)"/>
+                <use href="#i-nut" x="134" y="300" width="44" height="72" transform="rotate(-10 156 336)"/>
+                <use href="#i-nut" x="182" y="304" width="44" height="72" transform="rotate(70 204 340)"/>
+                <use href="#i-nut" x="228" y="298" width="44" height="72" transform="rotate(-45 250 334)"/>
+                <use href="#i-nut" x="62" y="262" width="44" height="72" transform="rotate(80 84 298)"/>
+                <use href="#i-nut" x="110" y="256" width="44" height="72" transform="rotate(-60 132 292)"/>
+                <use href="#i-nut" x="158" y="260" width="44" height="72" transform="rotate(20 180 296)"/>
+                <use href="#i-nut" x="206" y="256" width="44" height="72" transform="rotate(-80 228 292)"/>
+                <use href="#i-nut" x="86" y="222" width="44" height="72" transform="rotate(35 108 258)"/>
+                <use href="#i-nut" x="140" y="214" width="44" height="72" transform="rotate(-25 162 250)"/>
+                <use href="#i-nut" x="190" y="222" width="44" height="72" transform="rotate(60 212 258)"/>
+                <use href="#i-nut" x="40" y="236" width="44" height="72" transform="rotate(-70 62 272)"/>
+                <use href="#i-nut" x="236" y="232" width="44" height="72" transform="rotate(15 258 268)"/>
+                <use href="#i-nut" x="70" y="180" width="44" height="72" transform="rotate(-20 92 216)"/>
+                <use href="#i-nut" x="124" y="172" width="44" height="72" transform="rotate(40 146 208)"/>
+                <use href="#i-nut" x="178" y="178" width="44" height="72" transform="rotate(-55 200 214)"/>
+                <use href="#i-nut" x="228" y="186" width="44" height="72" transform="rotate(25 250 222)"/>
+              </g>
+            </g>
+            <path d="M84 92c-30 10-50 40-50 80v150c0 26 20 42 46 42h140c26 0 46-16 46-42V172c0-40-20-70-50-80z" fill="none" stroke="#1d140c" stroke-width="6"/>
+            <path d="M58 170c0-24 10-44 28-56" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" opacity=".8"/>
+            <rect x="80" y="72" width="160" height="26" rx="8" fill="#fffaf2" stroke="#1d140c" stroke-width="6"/>
+            <rect x="70" y="30" width="180" height="48" rx="12" fill="#ffc23d" stroke="#1d140c" stroke-width="6"/>
+          </svg>
         </div>
-        <div>
-          <div class="panel">
-            <h3>Collect</h3>
-            <p class="muted" id="collect-summary">Nothing to collect yet.</p>
+
+        <div class="jar-body">
+          <span class="eyebrow">In your jar</span>
+          <div class="jar-total" id="balance-total">0 sats</div>
+          <p class="small muted jar-note" id="balance-note"></p>
+
+          <div class="collect-strip" id="collect-strip">
+            <div>
+              <b id="collect-summary">Nothing to collect yet.</b>
+              <span class="small muted">Collecting unlocks your boosts and drops them in the jar.</span>
+            </div>
             <button id="btn-collect" disabled>Collect all</button>
-            <p class="small muted">Collecting unlocks the ecash with your key and adds it to your balance below. Keep it there, move it to any Cashu wallet, or cash out over Lightning.</p>
-            <p id="collect-err" class="err"></p>
           </div>
-          <div class="panel hidden" id="collected" style="margin-top:16px">
-            <h3>Your balance</h3>
-            <div class="big" id="balance-total" style="font:800 34px/1.1 var(--display);margin:4px 0 6px">0 sats</div>
-            <p class="small muted" id="balance-note"></p>
-            <div id="tokens"></div>
-            <label for="ln">Or send it to your lightning address</label>
-            <div class="row"><input id="ln" placeholder="you@getalby.com" style="flex:1"><button id="btn-melt">Send</button></div>
-            <p id="melt-out" class="small"></p>
+          <p id="collect-err" class="err"></p>
+
+          <div id="collected" class="hidden">
+            <details class="take-out">
+              <summary>Take your sats out</summary>
+              <div class="take-grid">
+                <div class="take-opt">
+                  <h4>To a Cashu wallet</h4>
+                  <p class="small muted">Minibits, cashu.me, eNuts… Free and instant.</p>
+                  <div id="tokens"></div>
+                </div>
+                <div class="take-opt">
+                  <h4>To a Lightning address</h4>
+                  <p class="small muted">Any wallet with an address. A few sats go to fees.</p>
+                  <div class="row"><input id="ln" placeholder="you@minibits.cash" style="flex:1;min-width:0"><button id="btn-melt">Send</button></div>
+                  <p id="melt-out" class="small"></p>
+                </div>
+              </div>
+            </details>
           </div>
-          <div class="panel gold" style="margin-top:16px">
+        </div>
+      </div>
+
+      <div class="inbox-grid">
+        <div class="panel feed-panel">
+          <div class="feed-head">
+            <h3>Messages <span class="count" id="zap-count"></span></h3>
+            <button class="ghost small-btn" id="btn-refresh">Refresh</button>
+          </div>
+          <div id="zaps" class="feed"><p class="muted">Loading from relays…</p></div>
+        </div>
+
+        <div class="side">
+          <div class="panel gold share-card">
+            <span class="eyebrow">Share your jar</span>
             <h3>Your boost link</h3>
-            <p class="small muted">Share it in your bio, posts and show notes.</p>
-            <div class="box mono" id="my-link" style="max-height:none"></div>
-            <div class="row" style="margin-top:10px"><button id="btn-copy-link">Copy link</button><a class="btn ghost" id="my-link-open">Open</a></div>
-            <div class="qr" id="my-qr" style="margin-top:14px;width:180px"></div>
+            <p class="small muted">Put it in your bio, posts and show notes. Fans boost from any Lightning wallet.</p>
+            <div class="share-row">
+              <div class="qr" id="my-qr"></div>
+              <div class="share-actions">
+                <button id="btn-copy-link">Copy link</button>
+                <a class="btn ghost" id="my-link-open">Preview</a>
+              </div>
+            </div>
+            <div class="box mono small" id="my-link"></div>
           </div>
-          <div class="panel" style="margin-top:16px">
-            <h3>Your embed code</h3>
+          <details class="panel embed-card">
+            <summary><h3>Button for your website</h3></summary>
             <pre id="my-snippet"></pre>
             <p class="small muted">More options in the <a href="./embed.html">embed builder</a>.</p>
-          </div>
+          </details>
         </div>
       </div>
     </section>
