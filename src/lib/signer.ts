@@ -18,7 +18,9 @@ export interface AppSigner {
 
 /** Relays used for the Nostr Connect handshake. relay.nsec.app is the usual NIP-46 relay (nsec.app needs it) but is listed last in case it is down. */
 export const CONNECT_RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://nostr.mom', 'wss://relay.primal.net', 'wss://relay.nsec.app'];
-const PERMS = ['get_public_key', 'sign_event:10019', 'sign_event:17375', 'nip44_encrypt', 'nip44_decrypt'];
+// Everything the creator app ever asks for, so the signer can approve it once at connect time:
+// nutzap profile (10019), wallet (17375), balance tokens (7375), history (7376), deletes (5).
+const PERMS = ['get_public_key', 'sign_event:10019', 'sign_event:17375', 'sign_event:7375', 'sign_event:7376', 'sign_event:5', 'nip44_encrypt', 'nip44_decrypt'];
 const SESSION = 'nutjar:signer-session';
 
 interface Session {
