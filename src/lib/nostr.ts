@@ -12,7 +12,13 @@ export const KIND_HISTORY = 7376;
 
 let pool: SimplePool | undefined;
 export function getPool(): SimplePool {
-  return (pool ??= new SimplePool());
+  // Slow or shaky links (a phone hotspot, say) need more than the default 3 s to connect, and a
+  // dropped socket must come back by itself, or a signer-app session silently stops hearing answers.
+  if (!pool) {
+    pool = new SimplePool({ enableReconnect: true, enablePing: true });
+    pool.maxWaitForConnection = 10_000;
+  }
+  return pool;
 }
 
 export interface NutzapInfo {

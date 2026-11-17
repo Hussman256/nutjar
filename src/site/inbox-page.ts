@@ -265,7 +265,11 @@ $('btn-connect').addEventListener('click', () => {
 
 $('btn-remote').addEventListener('click', async () => {
   pendingConnect?.cancel();
-  pendingConnect = startNostrConnect();
+  pendingConnect = startNostrConnect({
+    connected: () => ($('remote-status').textContent = 'Connected. Open your signer app and approve the request…'),
+    offline: () => ($('remote-status').textContent = "Can't reach the Nostr relays from this device. Trying again…"),
+    retry: () => ($('remote-status').textContent = 'Still waiting. Keep your signer app open on screen and approve the request…'),
+  });
   const { uri } = pendingConnect;
   show('remote');
   show('btn-remote', false);
@@ -276,7 +280,13 @@ $('btn-remote').addEventListener('click', async () => {
   pendingConnect.signer.then(
     (s) => signIn(s),
     (e) => {
-      if ((e as Error).name !== 'AbortError') $('remote-status').textContent = `Connection failed: ${(e as Error).message}`;
+      if ((e as Error).name === 'AbortError') return;
+      const timedOut = /timeout/.test((e as Error).message);
+      $('remote-status').textContent = timedOut
+        ? "Your signer app didn't answer. Open it, check it is connected to its relays, then reload this page and try again."
+        : /subscription closed/.test((e as Error).message)
+          ? "This device can't reach the Nostr relays. Check your internet connection, then reload this page and try again."
+          : `Connection failed: ${(e as Error).message}`;
     },
   );
 });
