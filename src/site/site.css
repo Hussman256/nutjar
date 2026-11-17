@@ -357,3 +357,42 @@ a.btn[aria-disabled="true"] { opacity: .45; pointer-events: none; box-shadow: 2p
 .console.lit .coin { animation: coin-bounce .6s ease-out 2; }
 @keyframes coin-bounce { 30% { transform: translateY(-14px) rotate(6deg); } 60% { transform: translateY(0) rotate(-3deg); } }
 @media (max-width: 560px) { .console { transform: none; padding: 12px 12px 18px; } .console .coin { display: none; } .console-screen { padding: 6px; } }
+
+/* ---------- NUTJAR BOY, alive: LCD strip, power meter, sound, celebration (gamepad.ts) ---------- */
+.console .snd { margin-left: 4px; width: 30px; height: 30px; padding: 0; border-radius: 50%; font-size: 14px; background: #fffbe8; color: #1d140c; border: 2px solid #1d140c; box-shadow: 0 2px 0 #1d140c; flex: none; }
+.console .snd:hover { transform: none; box-shadow: 0 2px 0 #1d140c; filter: brightness(1.05); }
+.console .snd:active { transform: translateY(2px); box-shadow: none; }
+.pad-lcd { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #9fb36b; border: 3px solid #1d140c; border-radius: 10px; padding: 8px 12px; box-shadow: inset 0 3px 0 rgba(0,0,0,.18); color: #22301a; font: 800 15px/1 var(--display); letter-spacing: .06em; }
+.pad-lcd .num { white-space: nowrap; }
+.pad-lcd .num b { display: inline-block; font-size: 22px; letter-spacing: -.02em; min-width: 2ch; }
+.pad-lcd .num.bump b { animation: lcd-bump .28s cubic-bezier(.3, 1.8, .5, 1); }
+.pad-lcd .num.dip b { animation: lcd-dip .24s ease-out; }
+@keyframes lcd-bump { 0% { transform: scale(1); } 45% { transform: scale(1.32) translateY(-3px); } 100% { transform: scale(1); } }
+@keyframes lcd-dip { 0% { transform: scale(1); } 45% { transform: scale(.82) translateY(2px); } 100% { transform: scale(1); } }
+.pad-lcd .meter { display: flex; gap: 3px; }
+.pad-lcd .meter i { width: 9px; height: 18px; border-radius: 2px; background: rgba(34,48,26,.16); transition: background .15s, transform .15s; }
+.pad-lcd .meter i.on { background: #22301a; }
+.pad-lcd .meter i.on:nth-child(n+8) { background: #c8321f; }
+.pad-lcd.max .meter i.on { animation: meter-max .5s steps(2, start) infinite; }
+@keyframes meter-max { to { opacity: .35; } }
+.pad-lcd.shake { animation: lcd-shake .3s; }
+@keyframes lcd-shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+.console .key { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.console .key.pressed { transform: translateY(4px) scale(.96, .9); box-shadow: inset 0 2px 0 rgba(255,255,255,.3), 0 1px 0 #1d140c; }
+.console:not(.busy) .key.red { animation: ready-glow 1.6s ease-in-out infinite; }
+@keyframes ready-glow { 50% { box-shadow: inset 0 2px 0 rgba(255,255,255,.4), 0 5px 0 #1d140c, 0 0 0 6px rgba(255,90,54,.25), 0 0 22px rgba(255,90,54,.55); } }
+.console.party .led { animation: led-party .18s steps(2, start) infinite; }
+@keyframes led-party { to { background: #ffc23d; box-shadow: 0 0 14px #ffc23d; } }
+.console.party { animation: console-jump .5s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes console-jump { 40% { transform: rotate(1deg) translateY(-8px) scale(1.01); } }
+.console .burst { position: absolute; left: 50%; top: 45%; width: 22px; height: 22px; margin: -11px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe08a, #ffc23d 55%, #d99a12); border: 2px solid #1d140c; pointer-events: none; z-index: 5; animation: burst 1.3s cubic-bezier(.2, .7, .4, 1) forwards; }
+.console .burst::after { content: "₿"; position: absolute; inset: 0; display: grid; place-items: center; font: 800 11px/1 var(--body); color: #8a5424; }
+@keyframes burst { 0% { transform: translate(0, 0) scale(.3) rotate(0); opacity: 1; } 60% { opacity: 1; } 100% { transform: translate(var(--dx), calc(var(--dy) + 140px)) scale(1) rotate(var(--r)); opacity: 0; } }
+.console-screen .landed { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; background: radial-gradient(circle, rgba(255,194,61,.96), rgba(255,90,54,.96)); animation: landed 2.8s ease forwards; text-align: center; }
+.console-screen .landed > div { display: grid; gap: 6px; transform: rotate(-3deg); }
+.console-screen .landed .t { font: 800 clamp(26px, 7vw, 38px)/1 var(--display); color: #1d140c; letter-spacing: -.02em; animation: landed-pop .5s cubic-bezier(.3, 1.8, .5, 1); }
+.console-screen .landed .a { font: 800 22px/1 var(--display); color: #fff; text-shadow: 2px 2px 0 #1d140c; }
+.console-screen .landed .w { font: 700 15px/1.2 var(--body); color: #1d140c; max-width: 260px; overflow-wrap: anywhere; }
+@keyframes landed { 0% { opacity: 0; } 8%, 82% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+@keyframes landed-pop { 0% { transform: scale(.3); } 100% { transform: scale(1); } }
+@media (max-width: 560px) { .pad-lcd { padding: 7px 10px; } .pad-lcd .meter i { width: 7px; height: 16px; } .pad-lcd .num b { font-size: 19px; } }

@@ -144,15 +144,27 @@ export class CashuBoost extends HTMLElement {
 
   // ---------- public controls (used by hardware-style frames, e.g. the demo console) ----------
 
-  /** Step through the preset amounts. Returns the new amount. */
+  /**
+   * Step the amount up or down a ladder of friendly numbers (the presets plus 21, 50, 100, 210, 500…),
+   * never past the boost cap. Returns the new amount.
+   */
   stepAmount(dir: 1 | -1): number {
     if (this.view !== 'form') return this.amount;
-    const list = this.amounts();
-    const i = list.indexOf(this.amount);
-    const next = i === -1 ? (dir > 0 ? list[0] : list[list.length - 1]) : list[Math.max(0, Math.min(list.length - 1, i + dir))];
-    this.amount = next;
-    this.render();
+    const max = this.maxAmount();
+    const ladder = [...new Set([...this.amounts(), 21, 50, 100, 210, 500, 1000, 2100, 5000, 10_000, 21_000, 50_000, 100_000])]
+      .filter((a) => a <= max)
+      .sort((a, b) => a - b);
+    const next = dir > 0 ? (ladder.find((a) => a > this.amount) ?? this.amount) : ([...ladder].reverse().find((a) => a < this.amount) ?? this.amount);
+    if (next !== this.amount) {
+      this.amount = next;
+      this.render();
+    }
     return next;
+  }
+
+  /** What a console frame needs to draw itself: the amount, the cap, and which screen is showing. */
+  state(): { amount: number; max: number; view: string } {
+    return { amount: this.amount, max: this.maxAmount(), view: this.view };
   }
 
   /** Press the main button: boost from the form, or start again after a finished boost. */
