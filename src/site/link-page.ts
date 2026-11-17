@@ -56,7 +56,8 @@ async function creatorPage() {
     if (v) w.setAttribute(k, v);
   }
   if (!params.get('label')) w.setAttribute('label', 'Send a boost with a message');
-  $('p-widget').append(w);
+  if (params.get('skin') === 'gamepad') gamePad(w);
+  else $('p-widget').append(w);
 
   let hex: string | null = null;
   try {
@@ -83,6 +84,46 @@ async function creatorPage() {
   $('p-name').textContent = name;
   w.setAttribute('name', name);
   document.title = `Boost ${name} · Nutjar`;
+}
+
+/**
+ * The NUTJAR BOY handheld around a real boost button. The keys only pick the amount and open the
+ * invoice; the fan still pays in their own wallet, so a stray press never spends anything.
+ */
+function gamePad(w: HTMLElement) {
+  type BoostEl = HTMLElement & { stepAmount(d: 1 | -1): number; press(): void };
+  const b = w as BoostEl;
+  w.setAttribute('skin', 'arcade');
+  const pad = document.createElement('div');
+  pad.className = 'console';
+  pad.innerHTML = `
+    <div class="console-top"><span class="led" title="Lights up when your boost lands"></span><span class="grill"></span><span class="console-brand">NUTJAR&nbsp;BOY</span></div>
+    <div class="console-screen"></div>
+    <div class="press-hint">PRESS ⚡ TO BOOST</div>
+    <div class="console-pad">
+      <button class="key blue" data-k="less" aria-label="Less sats">◀</button>
+      <button class="key blue" data-k="more" aria-label="More sats">▶</button>
+      <button class="key red" data-k="boost" aria-label="Boost">⚡</button>
+    </div>
+    <div class="console-labels"><span>LESS</span><span>MORE</span><span>BOOST</span></div>
+    <span class="coin" aria-hidden="true"></span>`;
+  pad.querySelector('.console-screen')!.append(w);
+  $('p-widget').append(pad);
+  const key = (k: string) => pad.querySelector<HTMLButtonElement>(`[data-k="${k}"]`)!;
+  key('less').addEventListener('click', () => b.stepAmount(-1));
+  key('more').addEventListener('click', () => b.stepAmount(1));
+  key('boost').addEventListener('click', () => {
+    pad.classList.remove('lit');
+    b.press();
+  });
+  // The hint and keys only make sense on the amount screen: watch the widget and follow along.
+  const sync = () => {
+    const onForm = !!w.shadowRoot?.querySelector('[data-act="invoice"]');
+    pad.classList.toggle('busy', !onForm);
+  };
+  new MutationObserver(sync).observe(w.shadowRoot ?? w, { childList: true, subtree: true });
+  sync();
+  w.addEventListener('boost', () => pad.classList.add('lit'));
 }
 
 function maker() {

@@ -376,10 +376,15 @@ let unwatch: (() => void) | undefined;
 async function start() {
   describe();
   $('my-snippet').textContent = snippet();
-  const link = new URL('./b/?npub=' + npub(me), location.href).href;
-  $('my-link').textContent = link;
-  $<HTMLAnchorElement>('my-link-open').href = link;
-  $('my-qr').innerHTML = await QRCode.toString(link, { type: 'svg', margin: 1 });
+  const showLink = async () => {
+    const skin = $<HTMLSelectElement>('my-skin').value;
+    const link = new URL('./b/?npub=' + npub(me) + (skin ? '&skin=' + skin : ''), location.href).href;
+    $('my-link').textContent = link;
+    $<HTMLAnchorElement>('my-link-open').href = link;
+    $('my-qr').innerHTML = await QRCode.toString(link, { type: 'svg', margin: 1 });
+  };
+  $('my-skin').onchange = showLink;
+  await showLink();
   await load();
   await loadBalance();
   unwatch?.();
