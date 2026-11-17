@@ -188,7 +188,9 @@ export class CashuBoost extends HTMLElement {
       const wallet = await loadWallet(mint);
       const funding = await fundWithInvoice(wallet, this.amount, `Boost: ${this.label()}`);
       this.invoice = funding.invoice;
-      this.invoiceQr = await QRCode.toString(`lightning:${funding.invoice}`.toUpperCase(), { type: 'svg', margin: 1 });
+      // Bare invoice, no "lightning:" prefix: some wallets reject the prefixed form when scanned
+      // ("Payment destination could not be validated"). Uppercase keeps the QR small.
+      this.invoiceQr = await QRCode.toString(funding.invoice.toUpperCase(), { type: 'svg', margin: 1 });
       this.render();
       this.abort = new AbortController();
       const proofs = await funding.wait(this.abort.signal);

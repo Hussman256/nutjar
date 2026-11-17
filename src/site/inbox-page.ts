@@ -62,10 +62,21 @@ let tokens: TokenEvent[] = [];
 let balanceState: 'idle' | 'loading' | 'ready' | 'error' = 'idle';
 let balanceErr = '';
 
+/** The token events with every proof counted once, even if two events hold the same proof. */
+function liveTokens(): TokenEvent[] {
+  const seen = new Set<string>();
+  return tokens
+    .map((t) => {
+      const proofs = t.proofs.filter((p) => !seen.has(p.secret) && seen.add(p.secret));
+      return { ...t, proofs, amount: sumWire(proofs) };
+    })
+    .filter((t) => t.proofs.length > 0);
+}
+
 /** Token events grouped by mint. */
 function byMint(): Map<string, TokenEvent[]> {
   const m = new Map<string, TokenEvent[]>();
-  for (const t of tokens) m.set(t.mint, [...(m.get(t.mint) ?? []), t]);
+  for (const t of liveTokens()) m.set(t.mint, [...(m.get(t.mint) ?? []), t]);
   return m;
 }
 
@@ -93,19 +104,29 @@ async function deleteTokens(ids: string[]) {
   }
 }
 
+const keptKey = (k: Kept) => k.proofs.map((p) => p.secret).join(',');
+
 /** Push anything still only on this device up to the relays. */
-async function syncLocal(): Promise<void> {
-  let rest = kept();
-  for (const k of [...rest]) {
+async function doSyncLocal(): Promise<void> {
+  for (const k of kept()) {
     try {
       const ev = await saveToken(k.mint, k.proofs);
-      rest = rest.filter((x) => x !== k);
-      saveKept(rest);
+      // Re-read storage: a Collect may have added new ecash while the signer was busy. Never overwrite it.
+      saveKept(kept().filter((x) => keptKey(x) !== keptKey(k)));
       tokens.unshift({ id: ev.id, mint: k.mint, proofs: k.proofs, amount: sumWire(k.proofs), createdAt: ev.created_at });
     } catch {
       /* stays local, retried next time */
     }
   }
+}
+
+// One sync at a time. Two overlapping runs (say, the balance loading while Collect runs, which is easy
+// with a slow phone signer) would both save the same ecash and show it twice.
+let syncChain: Promise<void> = Promise.resolve();
+function syncLocal(): Promise<void> {
+  const run = syncChain.then(doSyncLocal);
+  syncChain = run.catch(() => {});
+  return run;
 }
 
 async function loadBalance(): Promise<void> {
@@ -141,7 +162,7 @@ async function loadBalance(): Promise<void> {
 function renderBalance() {
   const local = kept();
   const groups = [...byMint()];
-  const total = tokens.reduce((t, x) => t + x.amount, 0) + local.reduce((t, k) => t + k.amount, 0);
+  const total = liveTokens().reduce((t, x) => t + x.amount, 0) + local.reduce((t, k) => t + k.amount, 0);
   show('collected', balanceState !== 'idle' || local.length > 0);
   $('balance-total').textContent = balanceState === 'loading' ? 'Loading…' : `${fmt(total)} sats`;
   $('balance-note').textContent =
