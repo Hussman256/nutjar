@@ -2,10 +2,10 @@
 
 **A Value4Value boost button paid in Cashu ecash.** Drop it on any podcast episode, article, video or creator page. Listeners pick an amount, write a message and pay with Lightning or ecash. Creators receive the boost as a [NIP-61 nutzap](https://github.com/nostr-protocol/nips/blob/master/61.md), split between hosts, guests and editors the way their [Podcasting 2.0 feed](https://podcasting2.org/docs/podcast-namespace/tags/value) says.
 
-Built for [Nut November](https://nutnovember.org), Value4Value track.
+Built for [Nut November](https://nutnovember.org), Value4Value track. **Live: https://nutjar.vercel.app**
 
 ```html
-<script src="https://hussman256.github.io/nutjar/nutjar.js" defer></script>
+<script src="https://nutjar.vercel.app/nutjar.js" defer></script>
 <cashu-boost npub="npub1…" lnaddress="you@getalby.com" label="Episode 42"></cashu-boost>
 ```
 

@@ -25,7 +25,7 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.8"
   },
-  "homepage": "https://hussman256.github.io/nutjar/",
+  "homepage": "https://nutjar.vercel.app/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Hussman256/nutjar.git"
