@@ -17,8 +17,8 @@ import {
 } from '../lib/boost';
 import { fetchFeed, recipientsFor } from '../lib/feed';
 import { DEFAULT_RELAYS, ephemeralSigner, extensionSigner, nip07 } from '../lib/nostr';
-import { listPending, removePending, type PendingBoost } from '../lib/pending';
-import { fromWire, sum } from '../lib/proofs';
+import { listPending, removePending, savePending, type PendingBoost } from '../lib/pending';
+import { fromWire, sum, toWire } from '../lib/proofs';
 
 type View = 'loading' | 'form' | 'invoice' | 'token' | 'sending' | 'done' | 'fatal';
 
@@ -63,6 +63,40 @@ export class CashuBoost extends HTMLElement {
     const amounts = this.amounts();
     this.amount = amounts[1] ?? amounts[0];
     this.load();
+    void this.sweepPending();
+  }
+
+  /**
+   * Old invoices that were never paid are not money. Check them with the mint: paid ones become
+   * ecash we can hand back, dead ones are forgotten, so the "get them back" banner only ever shows
+   * sats that really exist. Skips anything under 10 minutes old (another tab may still be paying it).
+   */
+  private async sweepPending() {
+    let changed = false;
+    for (const p of listPending()) {
+      if (p.proofs.length || !p.quote || Date.now() - p.createdAt < 10 * 60_000) continue;
+      try {
+        const wallet = await loadWallet(p.mint);
+        const q = await wallet.checkMintQuoteBolt11(p.quote);
+        const state = String(q.state);
+        if (state === 'PAID') {
+          const proofs = await wallet.mintProofsBolt11(p.amount, p.quote);
+          savePending({ ...p, quote: undefined, proofs: proofs.map(toWire) });
+          changed = true;
+        } else if (state === 'ISSUED' || (q.expiry && q.expiry * 1000 < Date.now())) {
+          removePending(p.id);
+          changed = true;
+        }
+      } catch {
+        /* mint unreachable: leave it for next time, it stays hidden from the banner */
+      }
+    }
+    if (changed && this.view === 'form') this.render();
+  }
+
+  /** Unfinished boosts that hold real ecash (not just an unpaid invoice). */
+  private recoverable(): PendingBoost[] {
+    return listPending().filter((p) => p.proofs.length > 0);
   }
 
   attributeChangedCallback(_n: string, oldV: string | null, newV: string | null) {
@@ -328,11 +362,11 @@ export class CashuBoost extends HTMLElement {
   private formView(): string {
     const mint = this.mint();
     const lines = this.currentPlan(mint);
-    const pending = listPending();
+    const pending = this.recoverable();
     const custom = !this.amounts().includes(this.amount);
     const payable = lines.some((l) => l.rail !== 'none');
     return `
-      ${pending.length ? `<div class="banner">You have ${fmt(pending.reduce((t, p) => t + (p.proofs.length ? sum(p.proofs) : p.amount), 0))} sats from an unfinished boost. <button class="ghost" data-act="recover">Get them back</button></div>` : ''}
+      ${pending.length ? `<div class="banner">You have ${fmt(pending.reduce((t, p) => t + sum(p.proofs), 0))} sats from an unfinished boost. <button class="ghost" data-act="recover">Get them back</button></div>` : ''}
       <div class="amounts" role="group" aria-label="Amount in sats">
         ${this.amounts().map((a) => `<button data-amt="${a}" aria-pressed="${a === this.amount}">${fmt(a)}</button>`).join('')}
       </div>
@@ -462,7 +496,7 @@ export class CashuBoost extends HTMLElement {
       }
     });
     on('recover', () => {
-      const p = listPending()[0];
+      const p = this.recoverable()[0];
       if (p) this.recover(p);
     });
   }
