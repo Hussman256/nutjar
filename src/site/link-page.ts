@@ -105,6 +105,7 @@ function maker() {
   $('nav-own').classList.add('hidden');
   const enable = (id: string, on: boolean) => $(id).setAttribute('aria-disabled', String(!on));
   let link = '';
+  let npubTouched = false;
 
   const update = async () => {
     const n = $<HTMLInputElement>('m-npub').value.trim();
@@ -112,16 +113,19 @@ function maker() {
     const label = $<HTMLInputElement>('m-label').value.trim();
     const skin = $<HTMLSelectElement>('m-skin').value;
     let err = '';
+    let npubOk = false;
     if (n) {
       try {
         toHexPubkey(n);
+        npubOk = true;
       } catch {
-        err = "That npub doesn't look right.";
+        // Don't scold while it's still being typed: only once it's full length, or the field was left.
+        if (n.length >= 63 || npubTouched) err = "That npub doesn't look right.";
       }
     }
     if (to && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) err = 'A lightning address looks like you@getalby.com.';
     $('m-err').textContent = err;
-    const ok = !err && !!(n || to);
+    const ok = !err && (!n || npubOk) && !!(n || to);
     link = ok ? boostLink(root.href, { npub: n || undefined, to: to || undefined, label: label || undefined, skin: skin || undefined }) : '';
     $('m-link').textContent = link || 'Fill in an npub or lightning address.';
     $<HTMLButtonElement>('m-copy').disabled = !link;
@@ -134,6 +138,10 @@ function maker() {
   };
 
   for (const id of ['m-npub', 'm-to', 'm-label', 'm-skin']) $(id).addEventListener('input', update);
+  $('m-npub').addEventListener('change', () => {
+    npubTouched = true;
+    update();
+  });
   $('m-copy').addEventListener('click', async () => {
     await navigator.clipboard?.writeText(link);
     $('m-copy').textContent = 'Copied!';
