@@ -1,7 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/:id(npub1[02-9ac-hj-np-z]+)", "destination": "/b/index.html" },
-    { "source": "/:id([^/@]+@[^/]+[.][^/]+)", "destination": "/b/index.html" }
+    {
+      "source": "/:id(npub1[02-9ac-hj-np-z]+)",
+      "destination": "/b/index.html"
+    },
+    {
+      "source": "/:id([^/@]+@[^/]+[.][^/]+)",
+      "destination": "/b/index.html"
+    },
+    {
+      "source": "/:id([^/@%]+%40[^/]+[.][^/]+)",
+      "destination": "/b/index.html"
+    }
   ]
 }
