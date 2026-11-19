@@ -77,7 +77,7 @@ export async function signHistoryEvent(
 }
 
 /** Raw token + deletion events of mine. Throws if no relay answers (silence must not read as "empty wallet"). */
-export async function fetchWalletEvents(pubkey: string, relays: string[], deadlineMs = 6000): Promise<{ tokens: Event[]; deleted: Set<string> }> {
+export async function fetchWalletEvents(pubkey: string, relays: string[], deadlineMs = 12000): Promise<{ tokens: Event[]; deleted: Set<string> }> {
   const pool = getPool();
   let answered = 0;
   const perRelay = await Promise.all(

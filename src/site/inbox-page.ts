@@ -311,6 +311,15 @@ async function signIn(s: AppSigner, knownPubkey?: string) {
     show('lede');
     show('connect');
     $('connect-err').textContent = (e as Error).message;
+    // A dropped connection is no reason to pair the signer again: offer to retry with the same session.
+    if (/relay|timeout|connect/i.test((e as Error).message)) {
+      const retry = document.createElement('button');
+      retry.className = 'ghost small-btn';
+      retry.style.marginLeft = '10px';
+      retry.textContent = 'Try again';
+      retry.onclick = () => signIn(s, knownPubkey);
+      $('connect-err').append(retry);
+    }
   }
 }
 

@@ -201,7 +201,7 @@ export function parseWalletContent(plain: string): { privkey?: string; mints: st
  * Each relay gets its own deadline so one hung relay can't stall sign-in. If *no* relay answers we throw
  * instead of returning "nothing found": treating silence as "new user" could overwrite a real profile.
  */
-export async function fetchOwn(pubkey: string, relays: string[], deadlineMs = 6000) {
+export async function fetchOwn(pubkey: string, relays: string[], deadlineMs = 12000) {
   const pool = getPool();
   let answered = 0;
   const perRelay = await Promise.all(
