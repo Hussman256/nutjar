@@ -3,12 +3,15 @@ import './pwa';
 import '../widget/cashu-boost';
 import QRCode from 'qrcode';
 import { buildPad, enhancePad } from './gamepad';
+import { boostLink, fromPath } from '../lib/links';
 import { DEFAULT_RELAYS, getPool, nip05Pubkey, npub as toNpub, toHexPubkey } from '../lib/nostr';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const params = new URLSearchParams(location.search);
-const base = new URL('./', location.href);
-base.search = '';
+// A short link (/you@getalby.com, /npub1…) is served from the site root; the long form lives at /b/.
+const short = fromPath();
+const root = new URL(short ? './' : '../', location.href);
+root.search = '';
 
 interface Profile {
   name?: string;
@@ -45,9 +48,11 @@ function showImg(id: string, url?: string) {
 }
 
 async function creatorPage() {
-  const npubParam = params.get('npub') ?? undefined;
-  const to = params.get('to') ?? undefined;
+  const npubParam = params.get('npub') ?? short?.npub;
+  const to = params.get('to') ?? short?.to;
   $('page').classList.remove('hidden');
+  // "Get your link" / "Get your own jar" go to the link maker, wherever this page is served from.
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('a[href="./"]')) a.href = new URL('b/', root).href;
 
   const w = document.createElement('cashu-boost');
   if (npubParam) w.setAttribute('npub', npubParam);
@@ -117,12 +122,7 @@ function maker() {
     if (to && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) err = 'A lightning address looks like you@getalby.com.';
     $('m-err').textContent = err;
     const ok = !err && !!(n || to);
-    const q = new URLSearchParams();
-    if (n) q.set('npub', n);
-    if (to) q.set('to', to);
-    if (label) q.set('label', label);
-    if (skin) q.set('skin', skin);
-    link = ok ? `${base.href}?${q}` : '';
+    link = ok ? boostLink(root.href, { npub: n || undefined, to: to || undefined, label: label || undefined, skin: skin || undefined }) : '';
     $('m-link').textContent = link || 'Fill in an npub or lightning address.';
     $<HTMLButtonElement>('m-copy').disabled = !link;
     $<HTMLAnchorElement>('m-open').href = link || '#';
@@ -147,5 +147,5 @@ function maker() {
   update();
 }
 
-if (params.get('npub') || params.get('to')) creatorPage();
+if (params.get('npub') || params.get('to') || short) creatorPage();
 else maker();

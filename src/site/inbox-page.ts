@@ -23,6 +23,7 @@ import { deleteTemplate, fetchWalletEvents, readTokens, signHistoryEvent, signTo
 import type { Event } from 'nostr-tools/pure';
 import { fromWire, toWire, type WireProof } from '../lib/proofs';
 import { esc, feedHtml } from './zaplist';
+import { boostLink } from '../lib/links';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const show = (id: string, on = true) => $(id).classList.toggle('hidden', !on);
@@ -378,7 +379,7 @@ async function start() {
   $('my-snippet').textContent = snippet();
   const showLink = async () => {
     const skin = $<HTMLSelectElement>('my-skin').value;
-    const link = new URL('./b/?npub=' + npub(me) + (skin ? '&skin=' + skin : ''), location.href).href;
+    const link = boostLink(new URL('./', location.href).href, { npub: npub(me), skin: skin || undefined });
     $('my-link').textContent = link;
     $<HTMLAnchorElement>('my-link-open').href = link;
     $('my-qr').innerHTML = await QRCode.toString(link, { type: 'svg', margin: 1 });
