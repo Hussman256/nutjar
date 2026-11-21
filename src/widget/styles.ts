@@ -13,7 +13,8 @@ export const css = /* css */ `
   --cb-radius: 16px;
   display: block;
   max-width: 420px;
-  font: 15px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cb-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font: 15px/1.45 var(--cb-font);
   color: var(--cb-ink);
 }
 :host([theme="dark"]) {
@@ -25,6 +26,9 @@ export const css = /* css */ `
   }
 }
 * { box-sizing: border-box; }
+/* Host pages often set text styles on every element (even with !important), and those reach the
+   widget through inheritance. Reset them on our own root so the widget looks the same everywhere. */
+.card { font: 15px/1.45 var(--cb-font); color: var(--cb-ink); letter-spacing: normal; word-spacing: normal; text-align: left; text-transform: none; text-indent: 0; font-style: normal; white-space: normal; direction: ltr; }
 .card { background: var(--cb-bg); border: 1px solid var(--cb-line); border-radius: var(--cb-radius); padding: 18px; }
 .head { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
 .nut { width: 40px; height: 40px; flex: none; border-radius: 12px; background: var(--cb-accent); color: var(--cb-accent-ink);
@@ -62,6 +66,10 @@ summary { cursor: pointer; padding: 9px 12px; font-size: 13px; font-weight: 600;
 .status li { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; font-size: 14px; }
 .ok { color: var(--cb-ok); } .bad { color: var(--cb-bad); }
 .note { font-size: 12px; color: var(--cb-muted); margin-top: 10px; }
+.note.pad { padding: 0 12px 10px; }
+.opt { text-transform: none; font-weight: 400; }
+.mt6 { margin-top: 6px; } .mt8 { margin-top: 8px; } .mt10 { margin-top: 10px; } .mt12 { margin-top: 12px; }
+.m0 { margin: 0; } .mid { align-items: center; } .wide { width: 100%; }
 .err { color: var(--cb-bad); font-size: 13px; margin-top: 8px; }
 .banner { border: 1px solid var(--cb-accent); border-radius: 12px; padding: 10px; font-size: 13px; margin-bottom: 12px; }
 .spinner { width: 14px; height: 14px; border: 2px solid var(--cb-line); border-top-color: var(--cb-accent); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; flex: none; margin-top: 3px; }
@@ -74,7 +82,7 @@ a { color: var(--cb-accent); }
 
 // Classic skin (default): Nutjar paper, ink outlines, offset shadows.
 export const classic = /* css */ `
-:host(:not([skin="arcade"])) { font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+:host(:not([skin="arcade"])) { --cb-font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 :host(:not([skin="arcade"])) .card { border: 2px solid var(--cb-edge); box-shadow: 4px 4px 0 var(--cb-edge); border-radius: 20px; }
 :host(:not([skin="arcade"])) .title { font-weight: 800; letter-spacing: -.01em; }
 :host(:not([skin="arcade"])) .nut { border: 2px solid var(--cb-edge); background: #ffc23d; }
@@ -97,7 +105,7 @@ export const arcade = /* css */ `
   --cb-ok: #5fd38a;
   --cb-bad: #ff7a6b;
   --cb-radius: 24px;
-  font-family: "Gabarito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cb-font: "Gabarito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 :host([skin="arcade"]) .card { background: linear-gradient(180deg, #2b2926, #151412); border-color: #3a3631; box-shadow: 0 24px 60px rgba(0,0,0,.45); }
 :host([skin="arcade"]) .title { font-weight: 900; font-size: 18px; letter-spacing: -.01em; }

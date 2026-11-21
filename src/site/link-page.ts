@@ -48,8 +48,11 @@ function showImg(id: string, url?: string) {
 }
 
 async function creatorPage() {
-  const npubParam = params.get('npub') ?? short?.npub;
-  const to = params.get('to') ?? short?.to;
+  // ?to= is meant for a Lightning address, but an npub pasted there by hand works too.
+  const rawTo = params.get('to') ?? short?.to;
+  const toIsNpub = !!rawTo && /^npub1/i.test(rawTo.trim());
+  const npubParam = params.get('npub') ?? short?.npub ?? (toIsNpub ? rawTo!.trim() : undefined);
+  const to = toIsNpub ? undefined : rawTo;
   $('page').classList.remove('hidden');
   // "Get your link" / "Get your own jar" go to the link maker, wherever this page is served from.
   for (const a of document.querySelectorAll<HTMLAnchorElement>('a[href="./"]')) a.href = new URL('b/', root).href;
@@ -86,7 +89,7 @@ async function creatorPage() {
       showImg('p-banner-img', p.banner);
     }
   }
-  name = String(name).slice(0, 60);
+  name = String(name).trim().slice(0, 60) || fallback;
   $('p-name').textContent = name;
   w.setAttribute('name', name);
   document.title = `Boost ${name} · Nutjar`;

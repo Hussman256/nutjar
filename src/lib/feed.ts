@@ -89,8 +89,33 @@ export function recipientsFor(feed: ParsedFeed, guid?: string): FeedRecipient[] 
   return ep && ep.recipients.length ? ep.recipients : feed.recipients;
 }
 
-export async function fetchFeed(url: string): Promise<ParsedFeed> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Feed request failed (${res.status}).`);
-  return parseFeed(await res.text());
+// Where the feed relay lives: next to the nutjar.js that was loaded (read while the script runs),
+// or the main site when this code runs as part of our own pages.
+const scriptSrc = typeof document !== 'undefined' ? (document.currentScript as HTMLScriptElement | null)?.src : undefined;
+const FEED_RELAY = new URL('/api/feed', scriptSrc && /^https?:/.test(scriptSrc) ? scriptSrc : 'https://nutjar.vercel.app').href;
+
+/**
+ * Load a podcast feed. Straight from the host first; many hosts don't allow other sites to read
+ * their RSS (no CORS headers), so if that fails, go through our feed relay.
+ */
+export async function fetchFeedText(url: string, episode?: string): Promise<string> {
+  let res: Response | undefined;
+  try {
+    res = await fetch(url);
+  } catch {
+    /* blocked by CORS or unreachable from here: try the relay */
+  }
+  if (!res?.ok) {
+    try {
+      res = await fetch(`${FEED_RELAY}?url=${encodeURIComponent(url)}${episode ? `&episode=${encodeURIComponent(episode)}` : ''}`);
+    } catch {
+      throw new Error("Couldn't load the podcast feed. Check the feed address.");
+    }
+  }
+  if (!res.ok) throw new Error(`Feed request failed (${res.status}). ${(await res.text().catch(() => '')).slice(0, 120)}`.trim());
+  return res.text();
+}
+
+export async function fetchFeed(url: string, episode?: string): Promise<ParsedFeed> {
+  return parseFeed(await fetchFeedText(url, episode));
 }

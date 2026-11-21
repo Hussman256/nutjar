@@ -1,6 +1,6 @@
 import './pwa';
 import '../widget/cashu-boost';
-import { parseFeed, recipientsFor, type ParsedFeed } from '../lib/feed';
+import { fetchFeedText, parseFeed, recipientsFor, type ParsedFeed } from '../lib/feed';
 import { esc } from './zaplist';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -81,12 +81,10 @@ function showSplits() {
 $('btn-feed').addEventListener('click', async () => {
   $('feed-status').textContent = 'Loading…';
   try {
-    const res = await fetch(val('feed'));
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    useFeed(await res.text());
+    useFeed(await fetchFeedText(val('feed')));
     $('feed-paste').classList.add('hidden');
   } catch (e) {
-    $('feed-status').textContent = `Couldn't load it from the browser (${(e as Error).message}). Many feed hosts block cross-site requests. Open the feed URL, then copy and paste the XML below.`;
+    $('feed-status').textContent = `Couldn't load it (${(e as Error).message}). Open the feed URL, then copy and paste the XML below.`;
     $('feed-paste').classList.remove('hidden');
   }
 });

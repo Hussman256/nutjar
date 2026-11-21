@@ -2,6 +2,20 @@
 import QRCode from 'qrcode';
 import { getEncodedToken, type Proof, type Wallet } from '@cashu/cashu-ts';
 import { arcade, classic, css } from './styles';
+
+const ALL_CSS = css + classic + arcade;
+let sheet: CSSStyleSheet | undefined;
+/** One shared constructable stylesheet: not blocked by a site's Content-Security-Policy, unlike <style>. */
+function sharedSheet(): CSSStyleSheet | undefined {
+  if (sheet) return sheet;
+  try {
+    sheet = new CSSStyleSheet();
+    sheet.replaceSync(ALL_CSS);
+    return sheet;
+  } catch {
+    return undefined; // very old browser: fall back to a <style> tag
+  }
+}
 import {
   deliver,
   fundWithInvoice,
@@ -16,7 +30,7 @@ import {
   type RecipientInput,
 } from '../lib/boost';
 import { fetchFeed, recipientsFor } from '../lib/feed';
-import { DEFAULT_RELAYS, ephemeralSigner, extensionSigner, nip07 } from '../lib/nostr';
+import { DEFAULT_RELAYS, ephemeralSigner, extensionSigner, fetchProfileName, nip05Pubkey, nip07, toHexPubkey } from '../lib/nostr';
 import { listPending, removePending, savePending, type PendingBoost } from '../lib/pending';
 import { fromWire, sum, toWire } from '../lib/proofs';
 
@@ -34,7 +48,7 @@ const RAIL_LABEL: Record<string, string> = {
 };
 
 export class CashuBoost extends HTMLElement {
-  static observedAttributes = ['npub', 'lnaddress', 'recipients', 'feed', 'episode', 'payment-request', 'mint', 'label', 'max'];
+  static observedAttributes = ['npub', 'lnaddress', 'recipients', 'feed', 'episode', 'payment-request', 'mint', 'label', 'max', 'name'];
 
   private root: ShadowRoot;
   private view: View = 'loading';
@@ -57,6 +71,8 @@ export class CashuBoost extends HTMLElement {
   constructor() {
     super();
     this.root = this.attachShadow({ mode: 'open' });
+    const s = sharedSheet();
+    if (s) this.root.adoptedStyleSheets = [s];
   }
 
   connectedCallback() {
@@ -99,7 +115,13 @@ export class CashuBoost extends HTMLElement {
     return listPending().filter((p) => p.proofs.length > 0);
   }
 
-  attributeChangedCallback(_n: string, oldV: string | null, newV: string | null) {
+  attributeChangedCallback(n: string, oldV: string | null, newV: string | null) {
+    // A new name only changes the title: no reload, and nothing a fan is typing gets lost.
+    if (n === 'name') {
+      const title = this.root.querySelector('.title');
+      if (title) title.textContent = `Boost ${this.attr('name') ?? this.recipients[0]?.name ?? 'the creator'}`;
+      return;
+    }
     // Never interrupt a payment in progress; otherwise reload (load() discards stale runs).
     const busy = this.view === 'invoice' || this.view === 'token' || this.view === 'sending';
     if (this.isConnected && oldV !== newV && !busy) this.load();
@@ -135,15 +157,16 @@ export class CashuBoost extends HTMLElement {
     }
     const feedUrl = this.attr('feed');
     if (feedUrl) {
-      const feed = await fetchFeed(feedUrl);
       const guid = this.attr('episode');
+      const feed = await fetchFeed(feedUrl, guid);
       this.podcastGuid = feed.podcastGuid;
       this.episodeTitle = feed.episodes.find((e) => e.guid === guid)?.title;
       return recipientsFor(feed, guid).map((r) => ({ name: r.name, split: r.split, type: r.type, address: r.address, fee: r.fee }));
     }
     const npub = this.attr('npub');
     const ln = this.attr('lnaddress');
-    if (npub || ln) return [{ name: this.attr('name') ?? 'Creator', split: 100, npub, lnaddress: ln }];
+    // Until the Nostr name arrives, a Lightning address already says who this is ("marcelo").
+    if (npub || ln) return [{ name: this.attr('name') ?? (!npub && ln ? ln.split('@')[0] : 'Creator'), split: 100, npub, lnaddress: ln }];
     return [];
   }
 
@@ -160,12 +183,35 @@ export class CashuBoost extends HTMLElement {
       if (recipients.length === 0) throw new Error('No recipient configured. Set npub, lnaddress, recipients, feed or payment-request.');
       this.recipients = recipients;
       this.view = 'form';
+      void this.lookUpName(ticket);
     } catch (e) {
       if (ticket !== this.loadToken) return;
       this.error = e instanceof Error ? e.message : String(e);
       this.view = 'fatal';
     }
     this.render();
+  }
+
+  /**
+   * Embedded with just an npub or a Lightning address, the widget would say "Boost Creator" (or
+   * the address's user part). Fetch the creator's Nostr name instead: from the npub, or from the
+   * key the Lightning address's domain publishes for it (NIP-05). Only the title text is swapped, so a fan who is already typing isn't disturbed.
+   */
+  private async lookUpName(ticket: number) {
+    const npub = this.attr('npub');
+    const ln = this.attr('lnaddress');
+    if ((!npub && !ln) || this.attr('name') || this.recipients.length !== 1) return;
+    try {
+      const hex = npub ? toHexPubkey(npub) : await nip05Pubkey(ln!);
+      if (!hex) return;
+      const name = await fetchProfileName(hex, this.relays());
+      if (!name || ticket !== this.loadToken || this.attr('name')) return;
+      this.recipients[0].name = name;
+      const title = this.root.querySelector('.title');
+      if (title) title.textContent = `Boost ${name}`;
+    } catch {
+      /* no profile or relays unreachable: keep the generic name */
+    }
   }
 
   private mint(): string | undefined {
@@ -349,7 +395,7 @@ export class CashuBoost extends HTMLElement {
       }
     })();
     const name = this.attr('name') ?? this.recipients[0]?.name ?? 'the creator';
-    this.root.innerHTML = `<style>${css}${classic}${arcade}</style>
+    this.root.innerHTML = `${this.root.adoptedStyleSheets.length ? '' : `<style>${ALL_CSS}</style>`}
       <div class="card" part="card">
         <div class="head"><div class="nut" aria-hidden="true">🥜</div>
           <div><div class="title">Boost ${esc(name)}</div><div class="sub">${esc(this.label())}</div></div></div>
@@ -374,15 +420,15 @@ export class CashuBoost extends HTMLElement {
       <label for="msg">Message</label>
       <textarea id="msg" data-field="message" maxlength="${MAX_MESSAGE}" placeholder="Say thanks, ask a question…">${esc(this.message)}</textarea>
       <div class="counter">${this.message.length}/${MAX_MESSAGE}</div>
-      <label for="from">Your name <span style="text-transform:none;font-weight:400">(optional)</span></label>
+      <label for="from">Your name <span class="opt">(optional)</span></label>
       <input id="from" data-field="sender" placeholder="Anonymous" value="${esc(this.sender)}">
       ${nip07() ? `<label class="check"><input type="checkbox" data-field="nostr" ${this.useNostrId ? 'checked' : ''}> Sign with my Nostr identity (otherwise anonymous)</label>` : ''}
       <details ${lines.length > 1 ? 'open' : ''}><summary>Where your ${fmt(this.amount)} sats go</summary><ul class="splits">
         ${lines.map((l) => `<li><span>${esc(l.recipient.name)}${l.recipient.unsupported ? `<br><span class="note">${esc(l.recipient.unsupported)}</span>` : ''}</span>
           <span>${l.rail === 'none' ? '' : fmt(l.amount) + ' sats '}<span class="badge ${l.rail}">${RAIL_LABEL[l.rail]}</span></span></li>`).join('')}
-      </ul>${mint ? `<div class="note" style="padding:0 12px 10px">Mint: ${esc(new URL(mint).host)}. Mint and routing fees, if any, come out of the last share.</div>` : ''}</details>
+      </ul>${mint ? `<div class="note pad">Mint: ${esc(new URL(mint).host)}. Mint and routing fees, if any, come out of the last share.</div>` : ''}</details>
       ${payable ? `<button class="primary" data-act="invoice">Boost ${fmt(this.amount)} sats ⚡</button>
-      <div class="row" style="margin-top:8px"><button class="ghost" data-act="token">Pay with ecash instead</button></div>
+      <div class="row mt8"><button class="ghost" data-act="token">Pay with ecash instead</button></div>
       <div class="note center"><a href="https://cashu.space/wallets" target="_blank" rel="noopener">No wallet yet? Get one in a minute →</a></div>`
       : `<div class="err">None of these recipients can receive Cashu yet.</div>`}
       ${this.error ? `<div class="err">${esc(this.error)}</div>` : ''}`;
@@ -395,14 +441,14 @@ export class CashuBoost extends HTMLElement {
       <div class="big">${fmt(this.amount)} sats</div>
       <div class="qr">${this.invoiceQr}</div>
       <div class="row"><a href="lightning:${esc(this.invoice)}"><button class="primary">Open wallet</button></a></div>
-      <div class="row" style="margin-top:8px">
+      <div class="row mt8">
         <button data-act="copy-invoice">Copy invoice</button>
         ${webln ? '<button data-act="webln">Pay with browser wallet</button>' : ''}
       </div>
-      <div class="row" style="margin-top:12px;align-items:center"><span class="spinner"></span><span class="note" style="margin:0">Waiting for payment. Your sats become ecash, then go to the creator.</span></div>
+      <div class="row mt12 mid"><span class="spinner"></span><span class="note m0">Waiting for payment. Your sats become ecash, then go to the creator.</span></div>
       <div class="note center"><a href="https://cashu.space/wallets" target="_blank" rel="noopener">No wallet yet? Get one in a minute →</a></div>
       ${this.error ? `<div class="err">${esc(this.error)}</div>` : ''}
-      <button class="ghost" style="margin-top:10px;width:100%" data-act="back">Cancel</button>`;
+      <button class="ghost mt10 wide" data-act="back">Cancel</button>`;
   }
 
   private tokenView(): string {
@@ -411,7 +457,7 @@ export class CashuBoost extends HTMLElement {
       <textarea id="tok" data-field="token" class="mono" placeholder="cashuB…"></textarea>
       <div class="note">The whole token is boosted. It is split the same way as a Lightning boost.</div>
       ${this.error ? `<div class="err">${esc(this.error)}</div>` : ''}
-      <div class="row" style="margin-top:10px"><button class="ghost" data-act="back">Back</button><button class="primary" data-act="send-token">Boost</button></div>`;
+      <div class="row mt10"><button class="ghost" data-act="back">Back</button><button class="primary" data-act="send-token">Boost</button></div>`;
   }
 
   private progressView(): string {
@@ -429,10 +475,10 @@ export class CashuBoost extends HTMLElement {
       ${done ? `<div class="big center">${okAll ? 'Thank you! 🧡' : this.results.length ? 'Boost finished' : 'Your sats'}</div>` : `<div class="row"><span class="spinner"></span><span>Sending your boost…</span></div>`}
       ${todo.length || !done ? `<ul class="status">${items}</ul>` : ''}
       ${this.change ? `<div class="banner"><b>${fmt(this.change.amount)} sats</b> ${this.results.length ? 'were left over' : 'are yours again'}. Copy this token into any Cashu wallet to keep them:
-        <div class="box mono" style="margin-top:6px">${esc(this.change.token)}</div>
-        <button style="margin-top:6px" data-act="copy-change">Copy token</button></div>` : ''}
+        <div class="box mono mt6">${esc(this.change.token)}</div>
+        <button class="mt6" data-act="copy-change">Copy token</button></div>` : ''}
       ${this.error ? `<div class="err">${esc(this.error)}</div>` : ''}
-      ${done ? `<button class="ghost" style="width:100%" data-act="again">Boost again</button>` : ''}`;
+      ${done ? `<button class="ghost wide" data-act="again">Boost again</button>` : ''}`;
   }
 
   private wire() {

@@ -72,6 +72,19 @@ export async function fetchNutzapInfo(pubkey: string, relays = DEFAULT_RELAYS): 
   return ev ? parseNutzapInfo(ev) : null;
 }
 
+/** The display name from someone's Nostr profile (kind 0), or null. Text only, trimmed and capped. */
+export async function fetchProfileName(pubkey: string, relays = DEFAULT_RELAYS): Promise<string | null> {
+  const ev = await getPool().get(relays, { kinds: [0], authors: [pubkey] }, { maxWait: 4000 });
+  if (!ev) return null;
+  try {
+    const p = JSON.parse(ev.content);
+    const name = [p?.display_name, p?.displayName, p?.name].find((v) => typeof v === 'string' && v.trim());
+    return name ? name.trim().replace(/\s+/g, ' ').slice(0, 60) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** NIP-05 lookup, used to find the nostr key behind a lightning address (alice@getalby.com). */
 export async function nip05Pubkey(address: string): Promise<string | null> {
   const [name, domain] = address.trim().toLowerCase().split('@');
