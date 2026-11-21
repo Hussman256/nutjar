@@ -67,6 +67,7 @@ export class CashuBoost extends HTMLElement {
   private podcastGuid?: string;
   private episodeTitle?: string;
   private loadToken = 0;
+  private started = false;
 
   constructor() {
     super();
@@ -78,6 +79,7 @@ export class CashuBoost extends HTMLElement {
   connectedCallback() {
     const amounts = this.amounts();
     this.amount = amounts[1] ?? amounts[0];
+    this.started = true;
     this.load();
     void this.sweepPending();
   }
@@ -124,7 +126,8 @@ export class CashuBoost extends HTMLElement {
     }
     // Never interrupt a payment in progress; otherwise reload (load() discards stale runs).
     const busy = this.view === 'invoice' || this.view === 'token' || this.view === 'sending';
-    if (this.isConnected && oldV !== newV && !busy) this.load();
+    // Before connectedCallback (attributes set while the element upgrades) there is nothing to reload yet.
+    if (this.started && this.isConnected && oldV !== newV && !busy) this.load();
   }
 
   disconnectedCallback() {
@@ -180,7 +183,10 @@ export class CashuBoost extends HTMLElement {
         ? [{ name: this.attr('name') ?? 'Creator', split: 100, request } as Recipient]
         : await resolveRecipients(await this.inputs(), this.relays());
       if (ticket !== this.loadToken) return;
-      if (recipients.length === 0) throw new Error('No recipient configured. Set npub, lnaddress, recipients, feed or payment-request.');
+      if (recipients.length === 0)
+        throw new Error(this.attr('feed')
+          ? "This podcast's feed has no <podcast:value> block yet, so there's no one to send boosts to. Add one in your podcast host, or embed with npub or lnaddress instead."
+          : 'No recipient configured. Set npub, lnaddress, recipients, feed or payment-request.');
       this.recipients = recipients;
       this.view = 'form';
       void this.lookUpName(ticket);
