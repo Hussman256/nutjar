@@ -19,6 +19,21 @@ const STATE: Record<string, [string, string]> = {
 
 const AV = ['#ffc23d', '#ff8a6b', '#9ad0ff', '#b7e4a1', '#e2b071', '#d7b8ff'];
 
+/** Nutjar's own sites (now and before the move to Vercel): boosts from there came through a boost link. */
+const OWN_HOSTS = new Set(['nutjar.vercel.app', 'hussman256.github.io']);
+
+/** Where a boost came from: "via boost link" for Nutjar's own pages, the site's name for embeds elsewhere. */
+function whereHtml(url?: string): string {
+  if (!url) return '';
+  try {
+    const u = new URL(url);
+    if (OWN_HOSTS.has(u.host)) return 'via boost link';
+    return `via <a href="${esc(u.href)}" target="_blank" rel="noopener">${esc(u.host.replace(/^www\./, ''))}</a>`;
+  } catch {
+    return '';
+  }
+}
+
 /** One boost in the creator app's message feed. */
 export function feedHtml(z: Nutzap): string {
   const name = z.senderName || 'Anonymous';
@@ -26,7 +41,7 @@ export function feedHtml(z: Nutzap): string {
   for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const initial = name === 'Anonymous' ? '🥜' : esc([...name][0]!.toUpperCase());
   const [label, cls] = STATE[z.state ?? 'unknown'] ?? ['', ''];
-  const where = z.url ? `<a href="${esc(z.url)}" target="_blank" rel="noopener">${esc(new URL(z.url).host)}</a>` : '';
+  const where = whereHtml(z.url);
   let host = '';
   try {
     host = new URL(z.mint).host;
@@ -46,7 +61,7 @@ export function feedHtml(z: Nutzap): string {
 
 export function zapHtml(z: Nutzap, extra = ''): string {
   const [label, cls] = STATE[z.state ?? 'unknown'] ?? ['', ''];
-  const where = z.url ? `<a href="${esc(z.url)}" target="_blank" rel="noopener">${esc(new URL(z.url).host)}</a>` : '';
+  const where = whereHtml(z.url);
   const ep = z.episodeGuid ? `episode ${esc(z.episodeGuid.slice(0, 24))}` : '';
   let host = '';
   try {
