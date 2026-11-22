@@ -314,7 +314,7 @@ footer a { color: var(--ink-2); }
 
 /* ---------- phones ---------- */
 @media (max-width: 760px) {
-  nav .links a:not(.cta):not(.install):not([aria-current="page"]) { display: none; }
+  nav .links a:not(.cta):not(.install) { display: none; }
   nav .links a { font-size: 14px; padding: 8px 11px; }
   .bubble { font-size: 13px; max-width: 180px; padding: 8px 11px; }
   .bubble.b2 { top: 250px; }
@@ -518,6 +518,12 @@ html:not(.can-install) .more-links .install-row { display: none; }
   .ways, .uses .grid3 { display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 86%; gap: 14px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; margin: 0 -16px; padding: 4px 16px 16px; scroll-padding-inline: 16px; scrollbar-width: none; }
   .ways::-webkit-scrollbar, .uses .grid3::-webkit-scrollbar { display: none; }
   .ways > *, .uses .grid3 > * { scroll-snap-align: start; }
+  .ways .panel { padding: 18px; gap: 12px; }
+  .ways .num { width: 36px; height: 36px; font-size: 18px; border-radius: 10px; }
+  .ways h3 { font-size: 20px; margin: 0; }
+  .ways p.muted { font-size: 15px; }
+  .ways .bio, .ways .checks { display: none; }
+  .ways .code-win pre { font-size: 11.5px; }
   .uses .panel { padding: 18px; }
   .uses .ico { width: 48px; height: 48px; font-size: 24px; margin-bottom: 10px; }
   .swipe-hint { display: block; margin: -4px 0 0; font: 700 12px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
