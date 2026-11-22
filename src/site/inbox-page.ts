@@ -1,4 +1,5 @@
 import './pwa';
+import './app-shell';
 import { getEncodedToken } from '@cashu/cashu-ts';
 import QRCode from 'qrcode';
 import { DEFAULT_RELAYS, KIND_WALLET, npub, parseNutzapInfo, publish, type NutzapInfo } from '../lib/nostr';

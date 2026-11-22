@@ -21,16 +21,18 @@
 <body>
   <div class="wrap">
     <nav>
-      <a class="brand" href="./"><img src="./icon.svg" alt="" width="34" height="34">nutjar</a>
+      <a class="brand" href="./"><img src="./icon.svg" alt="" width="34" height="34"><span class="brand-word">nutjar</span></a>
+      <span class="app-title" id="app-title" aria-live="polite"></span>
       <div class="links">
         <a href="./">Home</a>
         <a href="./embed.html">Button for your site</a>
         <a href="./inbox.html" aria-current="page">Creator app</a>
         <a class="cta" href="./b/">Get your link</a>
       </div>
+      <button class="acct hidden" id="acct-btn" aria-label="Account">🥜</button>
     </nav>
 
-    <div class="row" style="justify-content:space-between;align-items:flex-end">
+    <div class="row title-row" id="title-row" style="justify-content:space-between;align-items:flex-end">
       <h1 style="margin-bottom:6px">Your boosts</h1>
       <button class="ghost hidden" id="signed-in" style="margin-bottom:14px">Sign out</button>
     </div>
@@ -55,13 +57,14 @@
             <p class="small muted" id="bunker-status"></p>
           </details>
         </div>
-        <div class="panel">
+        <div class="panel ext-panel" id="ext-panel">
           <span class="eyebrow">On a computer</span>
           <h3 style="margin-top:6px">Browser extension</h3>
           <p class="muted">Use a NIP-07 extension such as <a href="https://getalby.com" target="_blank" rel="noopener">Alby</a> or <a href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noopener">nos2x</a>.</p>
           <button id="btn-connect" class="ghost" style="width:100%">Connect extension</button>
         </div>
       </div>
+      <button class="linkish ext-toggle" id="ext-toggle" type="button">On a computer? Use a browser extension</button>
       <p id="connect-err" class="err"></p>
       <p class="small muted">Never paste an nsec or seed phrase into any website, including this one.</p>
     </section>
@@ -83,7 +86,7 @@ https://mint.coinos.io</textarea>
       <p class="status-line" id="status"></p>
 
       <!-- The jar: balance, collecting, taking money out -->
-      <div class="jar-card" id="jar-card">
+      <div class="jar-card" id="jar-card" data-pane="jar">
         <div class="jar-art" aria-hidden="true">
           <svg viewBox="0 0 320 400" class="jar-mini">
             <defs>
@@ -162,7 +165,7 @@ https://mint.coinos.io</textarea>
       </div>
 
       <div class="inbox-grid">
-        <div class="panel feed-panel">
+        <div class="panel feed-panel" data-pane="messages">
           <div class="feed-head">
             <h3>Messages <span class="count" id="zap-count"></span></h3>
             <button class="ghost small-btn" id="btn-refresh">Refresh</button>
@@ -171,7 +174,7 @@ https://mint.coinos.io</textarea>
         </div>
 
         <div class="side">
-          <div class="panel gold share-card">
+          <div class="panel gold share-card" data-pane="share">
             <span class="eyebrow">Share your jar</span>
             <h3>Your boost link</h3>
             <p class="small muted">Put it in your bio, posts and show notes. Fans boost from any Lightning wallet.</p>
@@ -186,16 +189,36 @@ https://mint.coinos.io</textarea>
             </div>
             <div class="box mono small" id="my-link"></div>
           </div>
-          <details class="panel embed-card">
+          <details class="panel embed-card" data-pane="more">
             <summary><h3>Button for your website</h3></summary>
             <pre id="my-snippet"></pre>
             <p class="small muted">More options in the <a href="./embed.html">embed builder</a>.</p>
           </details>
+          <div class="panel acct-panel" data-pane="more">
+            <span class="eyebrow">Account</span>
+            <p class="small" id="acct-status" style="margin:8px 0 14px"></p>
+            <button class="ghost" id="acct-signout" style="width:100%">Sign out</button>
+          </div>
+          <div class="panel more-links" data-pane="more">
+            <a href="#" class="install-row" data-install>Install the app <span>⬇</span></a>
+            <a href="./b/">Make a boost link <span>→</span></a>
+            <a href="./embed.html">Embed builder <span>→</span></a>
+            <a href="./">Nutjar website <span>→</span></a>
+            <a href="https://github.com/Hussman256/nutjar" target="_blank" rel="noopener">Source code <span>↗</span></a>
+          </div>
         </div>
       </div>
     </section>
 
+    <div class="install-banner" id="install-banner"><span>🥜 Get Nutjar on your home screen</span><button class="small-btn" id="install-go" data-install>Install</button></div>
+
     <footer><span>🥜 Nutjar · MIT licensed</span><span><a href="https://github.com/Hussman256/nutjar" target="_blank" rel="noopener">GitHub</a></span></footer>
+  </div>
+  <div class="tabbar" id="tabbar" role="navigation" aria-label="App sections">
+    <button data-tab="jar" aria-current="page"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="3.5" rx="1"/><path d="M8 6c-2 1-3 3-3 5.5V19a2.5 2.5 0 0 0 2.5 2.5h9A2.5 2.5 0 0 0 19 19v-7.5C19 9 18 7 16 6"/><path d="M9 15.5c1 1 2 1.5 3 1.5s2-.5 3-1.5"/></svg></span>Jar<i class="dot" id="tab-dot"></i></button>
+    <button data-tab="messages"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12.5a7.5 7.5 0 0 1-10.9 6.7L4 20.5l1.3-4.6A7.5 7.5 0 1 1 20 12.5z"/></svg></span>Messages<i class="badge" id="tab-badge"></i></button>
+    <button data-tab="share"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span>Share</button>
+    <button data-tab="more"><span class="ti"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span>More</button>
   </div>
   <script type="module" src="/src/site/inbox-page.ts"></script>
 </body>

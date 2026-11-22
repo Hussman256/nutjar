@@ -396,3 +396,93 @@ a.btn[aria-disabled="true"] { opacity: .45; pointer-events: none; box-shadow: 2p
 @keyframes landed { 0% { opacity: 0; } 8%, 82% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
 @keyframes landed-pop { 0% { transform: scale(.3); } 100% { transform: scale(1); } }
 @media (max-width: 560px) { .pad-lcd { padding: 7px 10px; } .pad-lcd .meter i { width: 7px; height: 16px; } .pad-lcd .num b { font-size: 19px; } }
+
+/* ---------- creator app as a phone app (app-shell.ts) ---------- */
+.app-title, .acct, .tabbar, .install-banner, .ext-toggle { display: none; }
+html:not(.app-mode) .acct-panel, html:not(.app-mode) .more-links { display: none; }
+.linkish { background: none; border: 0; box-shadow: none; padding: 6px 0; color: var(--ink-2); font: 600 14px var(--body); text-decoration: underline; text-decoration-color: var(--pop); text-underline-offset: 3px; cursor: pointer; }
+.linkish:hover, .linkish:active { transform: none; box-shadow: none; }
+
+.app-mode body { padding-bottom: env(safe-area-inset-bottom); -webkit-tap-highlight-color: transparent; }
+.app-mode nav { position: sticky; top: 0; z-index: 30; margin: 0 -16px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; background: color-mix(in srgb, var(--paper) 88%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.app-mode nav .brand img { width: 30px; height: 30px; }
+.app-mode nav .links a:not(.install) { display: none; }
+.app-mode nav .links a.install { font-size: 13px; padding: 7px 12px; }
+.app-mode footer { display: none; }
+
+/* signed in: the top bar shows the screen's title and the account button, like an app */
+.app-mode.signed-in nav .links { display: none; }
+.app-mode.signed-in nav .brand-word { display: none; }
+.app-mode.signed-in .app-title { display: block; flex: 1; font: 800 22px/1 var(--display); letter-spacing: -.03em; }
+.app-mode.signed-in .acct { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 50%; font-size: 19px; background: var(--gold); box-shadow: 2px 2px 0 var(--ink); }
+.app-mode.signed-in .title-row, .app-mode.signed-in #lede { display: none; }
+
+/* one screen per tab */
+.app-mode.in-main { --tabbar-h: 68px; }
+.app-mode.in-main body { padding-bottom: calc(var(--tabbar-h) + 18px + env(safe-area-inset-bottom)); }
+.app-mode.in-main:not([data-tab="jar"]) [data-pane="jar"],
+.app-mode.in-main:not([data-tab="messages"]) [data-pane="messages"],
+.app-mode.in-main:not([data-tab="share"]) [data-pane="share"],
+.app-mode.in-main:not([data-tab="more"]) [data-pane="more"] { display: none !important; }
+.app-mode #main { padding-top: 14px; }
+.app-mode .inbox-grid { margin-top: 0; gap: 16px; }
+.app-mode .side { gap: 16px; }
+.app-mode .status-line { margin: 0 0 12px; }
+.app-mode .status-line.quiet { display: none; }
+.app-mode .panel { padding: 18px; border-radius: 22px; }
+.app-mode .embed-card[open] { overflow: hidden; }
+
+/* the jar screen: jar and total side by side, big Collect button */
+.app-mode .jar-card { grid-template-columns: 84px minmax(0, 1fr); gap: 4px 14px; padding: 20px 18px; border-radius: 24px; align-items: center; }
+.app-mode .jar-art { grid-column: 1; grid-row: 1 / span 2; }
+.app-mode .jar-mini { max-width: 84px; }
+.app-mode .jar-body { display: contents; }
+.app-mode .jar-body > .eyebrow { grid-column: 2; grid-row: 1; align-self: end; }
+.app-mode .jar-total { grid-column: 2; grid-row: 2; align-self: start; margin: 4px 0 0; font-size: 46px; }
+.app-mode .jar-note, .app-mode .collect-strip, .app-mode #collect-err, .app-mode #collected { grid-column: 1 / -1; }
+.app-mode .jar-note { margin: 8px 0 14px; }
+.app-mode .collect-strip { flex-direction: column; align-items: stretch; text-align: center; padding: 16px; }
+.app-mode .collect-strip button { width: 100%; font-size: 17px; padding: 14px; }
+.app-mode .take-out > summary { padding: 6px 0; }
+
+/* the bottom tab bar */
+.app-mode.in-main .tabbar { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; height: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); padding: 6px 8px env(safe-area-inset-bottom); background: color-mix(in srgb, var(--card) 94%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: var(--edge); }
+.tabbar button { position: relative; display: grid; justify-items: center; align-content: center; gap: 2px; background: none; border: 0; box-shadow: none; border-radius: 16px; padding: 4px 0; color: var(--muted); font: 700 11.5px var(--body); letter-spacing: .01em; }
+.tabbar button:hover, .tabbar button:active { transform: none; box-shadow: none; }
+.tabbar button .ti { display: grid; place-items: center; width: 52px; height: 30px; border-radius: 99px; line-height: 1; transition: background .15s, transform .15s; }
+.tabbar button[aria-current="page"] { color: var(--ink); }
+.tabbar button[aria-current="page"] .ti { background: var(--gold); color: #1d140c; box-shadow: 2px 2px 0 var(--ink); }
+.tabbar button[aria-current="page"] .ti svg { stroke-width: 2.4; }
+.tabbar button:active .ti { transform: scale(.92); }
+.tabbar .badge:not(:empty) { position: absolute; top: 0; left: calc(50% + 8px); min-width: 19px; height: 19px; padding: 0 5px; border-radius: 99px; background: var(--pop); color: #fff; font: 800 11px/19px var(--body); font-style: normal; border: 2px solid var(--card); }
+.tabbar .dot { display: none; position: absolute; top: 3px; left: calc(50% + 12px); width: 11px; height: 11px; border-radius: 50%; background: var(--pop); border: 2px solid var(--card); }
+.tabbar .dot.on { display: block; }
+
+/* More screen */
+.more-links { display: grid; padding: 6px 18px !important; }
+.more-links a { display: flex; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--line); text-decoration: none; font-weight: 650; }
+.more-links a:first-child { border-top: 0; }
+.more-links a span { color: var(--muted); }
+html:not(.can-install) .more-links .install-row { display: none; }
+
+/* sign-in screen on a phone: the signer app first, the extension tucked away */
+.app-mode:not(.signed-in) h1 { font-size: 44px; margin-top: 18px; }
+.app-mode #connect .grid2 { gap: 14px; }
+.app-mode .ext-panel:not(.shown) { display: none; }
+.app-mode .ext-toggle { display: inline-block; margin-top: 6px; }
+.app-mode.can-install:not(.signed-in) .install-banner { display: flex; }
+.install-banner { align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 0; padding: 12px 12px 12px 16px; background: var(--card); border: var(--edge); border-radius: 16px; font-weight: 650; font-size: 15px; }
+
+/* install how-to sheet (pwa.ts) */
+.sheet { position: fixed; inset: 0; z-index: 60; display: flex; align-items: flex-end; justify-content: center; background: rgba(20, 14, 8, 0); pointer-events: none; transition: background .2s; }
+.sheet.open { background: rgba(20, 14, 8, .45); pointer-events: auto; }
+.sheet-card { width: min(520px, 100%); background: var(--card); border: var(--edge); border-bottom: 0; border-radius: 24px 24px 0 0; padding: 22px 20px calc(20px + env(safe-area-inset-bottom)); transform: translateY(105%); transition: transform .25s cubic-bezier(.2, .9, .3, 1); }
+.sheet.open .sheet-card { transform: none; }
+.sheet-card h3 { margin: 0 0 10px; font-size: 22px; }
+.sheet-card ol { margin: 0 0 12px; padding-left: 22px; display: grid; gap: 8px; }
+
+.app-mode .feed-head h3 { font-size: 0; }
+.app-mode .feed-head h3 .count { display: none; }
+.app-mode .feed-head { justify-content: flex-end; margin: -4px 0 0; }
+.app-mode .acct-panel { order: -2; }
+.app-mode .more-links { order: -1; }
