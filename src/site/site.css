@@ -486,3 +486,52 @@ html:not(.can-install) .more-links .install-row { display: none; }
 .app-mode .feed-head { justify-content: flex-end; margin: -4px 0 0; }
 .app-mode .acct-panel { order: -2; }
 .app-mode .more-links { order: -1; }
+
+/* ---------- homepage on phones: shorter, swipeable, one tap to the main action ---------- */
+.sticky-cta { display: none; }
+@media (max-width: 640px) {
+  section.band { padding-top: 56px; }
+  .section-head { margin-bottom: 18px; gap: 8px; }
+  .section-head .lede { font-size: 16px; }
+  .kicker { margin-bottom: 8px; }
+
+  /* hero: both buttons on one row, a smaller jar with two bubbles */
+  .hero { padding-top: 14px; }
+  .hero h1 { font-size: 46px; margin: 14px 0 12px; }
+  .hero .lede { font-size: 16.5px; margin: 0; }
+  .hero .ctas { margin: 20px 0 16px; gap: 10px; flex-wrap: nowrap; }
+  .hero .ctas .btn { flex: 1 1 auto; font-size: 15.5px; padding: 13px 12px; text-align: center; white-space: nowrap; }
+  .hero .ctas .btn.ghost { flex: 0 1 auto; }
+  .trust { gap: 6px 14px; font-size: 13px; }
+  .jar-stage { height: 320px; margin-top: 6px; }
+  .jar-svg { width: 190px; }
+  .bubble { max-width: 168px; font-size: 12.5px; padding: 7px 10px; }
+  .bubble b { font-size: 14px; }
+  .bubble.b1 { top: 6px; }
+  .bubble.b2 { top: 150px; }
+  .bubble.b3 { display: none; }
+  .jar-count { bottom: 8px; padding: 8px 12px; font-size: 14px; }
+  .marquee { margin-top: 18px; }
+  .marquee .track { font-size: 19px; padding: 10px 0; }
+
+  /* long card stacks become rows you swipe through; the next card peeks in */
+  .ways, .uses .grid3 { display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 86%; gap: 14px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; margin: 0 -16px; padding: 4px 16px 16px; scroll-padding-inline: 16px; scrollbar-width: none; }
+  .ways::-webkit-scrollbar, .uses .grid3::-webkit-scrollbar { display: none; }
+  .ways > *, .uses .grid3 > * { scroll-snap-align: start; }
+  .uses .panel { padding: 18px; }
+  .uses .ico { width: 48px; height: 48px; font-size: 24px; margin-bottom: 10px; }
+  .swipe-hint { display: block; margin: -4px 0 0; font: 700 12px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+  .why .grid2 { gap: 14px; }
+  .faq details { padding-block: 2px; }
+  .final { margin-top: 56px; border-radius: 22px; }
+  .final .row { flex-direction: column; align-items: stretch; }
+
+  /* sticky call to action once the hero buttons scroll away, hidden again at the final call */
+  .sticky-cta { display: flex; gap: 8px; position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 40; padding: 8px; background: color-mix(in srgb, var(--card) 92%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: var(--edge); border-radius: 20px; box-shadow: 4px 4px 0 var(--ink); transform: translateY(160%); transition: transform .25s cubic-bezier(.2, .9, .3, 1); }
+  .sticky-cta.on { transform: none; }
+  .sticky-cta .btn { flex: 1; text-align: center; padding: 12px; font-size: 15.5px; box-shadow: 2px 2px 0 var(--ink); }
+  .sticky-cta .btn.ghost { flex: 0 0 auto; }
+  body.has-sticky footer { padding-bottom: 90px; }
+}
+@media (min-width: 641px) { .swipe-hint { display: none; } }

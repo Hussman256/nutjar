@@ -161,3 +161,31 @@ else {
 // ---------- the console: sound, power meter, hold-to-repeat, keyboard, celebration (gamepad.ts) ----------
 const consoleEl = document.getElementById('console');
 if (consoleEl) enhancePad(consoleEl, widget, { name: () => 'the Demo Show' });
+
+// ---------- phones: a sticky "Get your boost link" bar once the hero buttons have scrolled away ----------
+// Hidden while the hero buttons, the demo console or the final call to action are on screen.
+{
+  const bar = document.getElementById('sticky-cta');
+  const watched = [document.querySelector('.hero .ctas'), document.getElementById('console'), document.querySelector('.final')].filter(Boolean) as Element[];
+  if (bar && watched.length && 'IntersectionObserver' in window) {
+    const visible = new Set<Element>();
+    let pastHero = false;
+    const heroCtas = watched[0];
+    const paint = () => {
+      const on = pastHero && visible.size === 0;
+      bar.classList.toggle('on', on);
+      bar.setAttribute('aria-hidden', String(!on));
+      for (const a of bar.querySelectorAll('a')) a.tabIndex = on ? 0 : -1;
+    };
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) visible.add(e.target);
+        else visible.delete(e.target);
+        if (e.target === heroCtas) pastHero = !e.isIntersecting && e.boundingClientRect.top < 0;
+      }
+      paint();
+    });
+    for (const el of watched) io.observe(el);
+    document.body.classList.add('has-sticky');
+  }
+}
