@@ -20,7 +20,7 @@ import {
   type Nutzap,
   type Redeemed,
 } from '../lib/inbox';
-import { deleteTemplate, fetchWalletEvents, readTokens, signHistoryEvent, signTokenEvent, type HistoryRef, type TokenEvent } from '../lib/nip60';
+import { SignerDeclinedError, deleteTemplate, fetchWalletEvents, readTokens, signHistoryEvent, signTokenEvent, type HistoryRef, type TokenEvent } from '../lib/nip60';
 import type { Event } from 'nostr-tools/pure';
 import { fromWire, toWire, type WireProof } from '../lib/proofs';
 import { esc, feedHtml } from './zaplist';
@@ -61,7 +61,7 @@ const sumWire = (p: WireProof[]) => p.reduce((t, x) => t + x.amount, 0);
 const fmt = (n: number) => n.toLocaleString('en-US');
 
 let tokens: TokenEvent[] = [];
-let balanceState: 'idle' | 'loading' | 'ready' | 'error' = 'idle';
+let balanceState: 'idle' | 'loading' | 'ready' | 'error' | 'locked' = 'idle';
 let balanceErr = '';
 let lastTotal = -1; // -1 until the first load, so the jar doesn't "pour" on page open
 
@@ -156,7 +156,7 @@ async function loadBalance(): Promise<void> {
     await syncLocal();
     balanceState = 'ready';
   } catch (e) {
-    balanceState = 'error';
+    balanceState = e instanceof SignerDeclinedError ? 'locked' : 'error';
     balanceErr = (e as Error).message;
   }
   renderBalance();
@@ -167,11 +167,17 @@ function renderBalance() {
   const groups = [...byMint()];
   const total = liveTokens().reduce((t, x) => t + x.amount, 0) + local.reduce((t, k) => t + k.amount, 0);
   show('collected', balanceState !== 'idle' || local.length > 0);
-  $('balance-total').textContent = balanceState === 'loading' ? 'Loading…' : `${fmt(total)} sats`;
-  $('balance-note').textContent =
-    balanceState === 'error'
-      ? `Couldn't load your saved balance: ${balanceErr}`
-      : 'Saved on your Nostr relays, encrypted so only you can read it. Sign in on any device to see it.';
+  $('balance-total').textContent = balanceState === 'loading' ? 'Opening…' : balanceState === 'locked' ? 'Locked 🔒' : `${fmt(total)} sats`;
+  $('jar-card').classList.toggle('jar-busy', balanceState === 'loading' || balanceState === 'locked');
+  $('balance-note').innerHTML =
+    balanceState === 'locked'
+      ? `Your signer didn't approve reading your jar, so it can't show your balance. Your sats are safe on your relays. <button class="ghost small-btn" id="btn-unlock" style="margin-top:10px">Try again</button>`
+      : balanceState === 'error'
+        ? `Couldn't load your saved balance: ${esc(balanceErr)}`
+        : balanceState === 'loading' && signer?.kind === 'remote'
+          ? 'Approve the request in your signer app to open your jar…'
+          : 'Saved on your Nostr relays, encrypted so only you can read it. Sign in on any device to see it.';
+  document.getElementById('btn-unlock')?.addEventListener('click', () => void loadBalance());
   // The jar fills with the balance: roughly by orders of magnitude, so 100 sats already looks like something.
   const fill = total <= 0 ? 0 : Math.min(0.95, 0.2 + Math.log10(total) / 6);
   const card = $('jar-card');
@@ -262,8 +268,8 @@ function render() {
   const open = list.filter((z) => z.state === 'unclaimed');
   const total = open.reduce((t, z) => t + z.amount, 0);
   $('collect-summary').textContent = open.length
-    ? `${total.toLocaleString('en-US')} sats in ${open.length} new boost${open.length === 1 ? '' : 's'}`
-    : 'Nothing new to collect';
+    ? `${total.toLocaleString('en-US')} sats in ${open.length} new boost${open.length === 1 ? '' : 's'}${privkey ? '' : ': open your jar to collect them'}`
+    : 'All boosts collected';
   $('collect-strip').classList.toggle('has-new', open.length > 0 && !!privkey);
   $<HTMLButtonElement>('btn-collect').disabled = !open.length || !privkey;
 }

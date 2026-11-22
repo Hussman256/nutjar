@@ -90,9 +90,10 @@ syncSignedIn();
 function syncTakeOut() {
   const text = $('balance-total').textContent ?? '';
   const sats = Number(text.replace(/[^\d]/g, '')) || 0;
-  const loading = /loading/i.test(text);
-  $('take-out').classList.toggle('empty', !loading && sats === 0);
-  $('take-sub').textContent = loading ? 'Loading your jar…' : sats > 0 ? `${text} ready to move to your own wallet` : 'Collect boosts first, then move them here';
+  const loading = /opening|loading/i.test(text);
+  const locked = /locked/i.test(text);
+  $('take-out').classList.toggle('empty', locked || (!loading && sats === 0));
+  $('take-sub').textContent = loading ? 'Opening your jar…' : locked ? 'Unlock your jar first' : sats > 0 ? `${text} ready to move to your own wallet` : 'Collect boosts first, then move them here';
 }
 watch($('balance-total'), syncTakeOut, { childList: true, characterData: true, subtree: true });
 syncTakeOut();

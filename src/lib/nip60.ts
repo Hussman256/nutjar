@@ -103,16 +103,30 @@ export async function fetchWalletEvents(pubkey: string, relays: string[], deadli
  * Decrypt token events into the live set: drops events that were deleted (kind 5) or replaced (another
  * token's `del`), and de-duplicates proofs that appear in more than one event.
  */
+/** The signer declined (or never answered) a request to read the jar. */
+export class SignerDeclinedError extends Error {
+  constructor(detail: string) {
+    super(`Your signer didn't approve reading your jar (${detail}).`);
+    this.name = 'SignerDeclinedError';
+  }
+}
+
 export async function readTokens(s: Pick<Nip60Signer, 'nip44Decrypt'>, me: string, events: Event[], deleted: Set<string>): Promise<TokenEvent[]> {
   const parsed: (TokenEvent & { del: string[] })[] = [];
   for (const ev of events) {
     if (deleted.has(ev.id)) continue;
+    let plain: string;
     try {
-      const c = parseTokenContent(await s.nip44Decrypt(me, ev.content));
-      if (c) parsed.push({ id: ev.id, mint: c.mint, proofs: c.proofs, amount: sum(c.proofs), createdAt: ev.created_at, del: c.del });
-    } catch {
-      /* not decryptable by this signer: skip */
+      plain = await s.nip44Decrypt(me, ev.content);
+    } catch (e) {
+      // A genuinely unreadable event (made for another key) is skipped. Anything else means the signer
+      // said no or never answered (Amber "Reject", a timeout): stop here instead of asking about every
+      // remaining event, and let the caller say so. Nothing is lost: the events stay on the relays.
+      if (/mac|decrypt|invalid|padding|payload|base64|malformed|version/i.test(String((e as Error)?.message ?? e))) continue;
+      throw new SignerDeclinedError(String((e as Error)?.message ?? e));
     }
+    const c = parseTokenContent(plain);
+    if (c) parsed.push({ id: ev.id, mint: c.mint, proofs: c.proofs, amount: sum(c.proofs), createdAt: ev.created_at, del: c.del });
   }
   const replaced = new Set(parsed.flatMap((t) => t.del));
   const secrets = new Set<string>();

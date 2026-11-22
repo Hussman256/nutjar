@@ -555,3 +555,12 @@ html:not(.can-install) .more-links .install-row { display: none; }
   body.has-sticky footer { padding-bottom: 90px; }
 }
 @media (min-width: 641px) { .swipe-hint { display: none; } }
+
+/* jar opening or locked: a calm label instead of a giant word */
+.jar-card.jar-busy .jar-total { font-size: 30px; letter-spacing: -.02em; color: var(--ink-2); }
+/* nothing new to collect: no dead button, just a quiet "all collected" line */
+.collect-strip:not(.has-new) { border-style: solid; padding: 12px 16px; }
+.collect-strip:not(.has-new) #btn-collect { display: none; }
+.collect-strip:not(.has-new) .small { display: none; }
+.collect-strip:not(.has-new):not(.waiting) #collect-summary::before { content: "✓ "; color: var(--green); }
+.app-mode .collect-strip:not(.has-new) { padding: 12px 14px; }
