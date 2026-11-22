@@ -37,6 +37,13 @@ import { fromWire, sum, toWire } from '../lib/proofs';
 type View = 'loading' | 'form' | 'invoice' | 'token' | 'sending' | 'done' | 'fatal';
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+/** "Nodesignal - Deine Bitcoin-Frequenz" -> "Nodesignal": the show's name without its tagline. */
+const shortShowName = (title: string): string | undefined => {
+  const t = title.trim();
+  if (!t) return undefined;
+  const head = t.split(/\s+[-–—|:]\s+/)[0].trim();
+  return (head.length >= 2 ? head : t).slice(0, 60);
+};
 const fmt = (n: number) => n.toLocaleString('en-US');
 const MAX_MESSAGE = 280;
 
@@ -66,6 +73,7 @@ export class CashuBoost extends HTMLElement {
   private change?: { amount: number; token: string };
   private podcastGuid?: string;
   private episodeTitle?: string;
+  private podcastName?: string;
   private loadToken = 0;
   private started = false;
 
@@ -121,7 +129,7 @@ export class CashuBoost extends HTMLElement {
     // A new name only changes the title: no reload, and nothing a fan is typing gets lost.
     if (n === 'name') {
       const title = this.root.querySelector('.title');
-      if (title) title.textContent = `Boost ${this.attr('name') ?? this.recipients[0]?.name ?? 'the creator'}`;
+      if (title) title.textContent = `Boost ${this.displayName()}`;
       return;
     }
     // Never interrupt a payment in progress; otherwise reload (load() discards stale runs).
@@ -163,6 +171,7 @@ export class CashuBoost extends HTMLElement {
       const guid = this.attr('episode');
       const feed = await fetchFeed(feedUrl, guid);
       this.podcastGuid = feed.podcastGuid;
+      this.podcastName = shortShowName(feed.title);
       this.episodeTitle = feed.episodes.find((e) => e.guid === guid)?.title;
       return recipientsFor(feed, guid).map((r) => ({ name: r.name, split: r.split, type: r.type, address: r.address, fee: r.fee }));
     }
@@ -376,6 +385,11 @@ export class CashuBoost extends HTMLElement {
     this.render();
   }
 
+  /** Who the title thanks: the name attribute, the podcast (feed embeds), else the first recipient. */
+  private displayName(): string {
+    return this.attr('name') ?? this.podcastName ?? this.recipients[0]?.name ?? 'the creator';
+  }
+
   private label(): string {
     return this.attr('label') ?? this.episodeTitle ?? document.title;
   }
@@ -400,7 +414,7 @@ export class CashuBoost extends HTMLElement {
           return this.progressView();
       }
     })();
-    const name = this.attr('name') ?? this.recipients[0]?.name ?? 'the creator';
+    const name = this.displayName();
     this.root.innerHTML = `${this.root.adoptedStyleSheets.length ? '' : `<style>${ALL_CSS}</style>`}
       <div class="card" part="card">
         <div class="head"><div class="nut" aria-hidden="true">🥜</div>
