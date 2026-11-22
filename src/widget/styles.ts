@@ -48,6 +48,9 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 label { display: block; font-size: 12px; font-weight: 600; color: var(--cb-muted); margin: 10px 0 4px; text-transform: uppercase; letter-spacing: .04em; }
 input, textarea { width: 100%; font: inherit; color: var(--cb-ink); background: var(--cb-surface); border: 1px solid var(--cb-line); border-radius: 12px; padding: 9px 11px; }
 textarea { resize: vertical; min-height: 64px; }
+/* compact: set by the game pad on small phones so the whole handheld fits on one screen */
+:host([compact]) [data-field="custom"], :host([compact]) .wallet-note { display: none; }
+:host([compact]) textarea { min-height: 46px; height: 46px; }
 .counter { text-align: right; font-size: 11px; color: var(--cb-muted); }
 details { margin: 12px 0; border: 1px solid var(--cb-line); border-radius: 12px; background: var(--cb-surface); }
 summary { cursor: pointer; padding: 9px 12px; font-size: 13px; font-weight: 600; }

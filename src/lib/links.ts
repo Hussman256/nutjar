@@ -47,3 +47,18 @@ export function fromPath(pathname = location.pathname): { npub?: string; to?: st
   if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(seg)) return { to: seg };
   return undefined;
 }
+
+/** A link worth showing a creator: a public https page, not localhost or a private network address. */
+export function publicHttpsUrl(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  try {
+    const u = new URL(raw);
+    const h = u.hostname.replace(/^\[|\]$/g, '');
+    const local =
+      h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') || h.endsWith('.test') || h === '::1' ||
+      /^(127|10|0)\./.test(h) || /^192\.168\./.test(h) || /^172\.(1[6-9]|2\d|3[01])\./.test(h);
+    return u.protocol === 'https:' && !local ? u.href : undefined;
+  } catch {
+    return undefined;
+  }
+}

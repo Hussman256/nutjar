@@ -30,6 +30,7 @@ import {
   type RecipientInput,
 } from '../lib/boost';
 import { fetchFeed, recipientsFor } from '../lib/feed';
+import { publicHttpsUrl } from '../lib/links';
 import { DEFAULT_RELAYS, ephemeralSigner, extensionSigner, fetchProfileName, nip05Pubkey, nip07, toHexPubkey } from '../lib/nostr';
 import { listPending, removePending, savePending, type PendingBoost } from '../lib/pending';
 import { fromWire, sum, toWire } from '../lib/proofs';
@@ -44,6 +45,8 @@ const shortShowName = (title: string): string | undefined => {
   const head = t.split(/\s+[-–—|:]\s+/)[0].trim();
   return (head.length >= 2 ? head : t).slice(0, 60);
 };
+/** The page the boost came from (public https pages only), so creators see where fans found them. */
+const publicPageUrl = () => publicHttpsUrl(location.href);
 const fmt = (n: number) => n.toLocaleString('en-US');
 const MAX_MESSAGE = 280;
 
@@ -340,7 +343,7 @@ export class CashuBoost extends HTMLElement {
         signer,
         episodeGuid: this.attr('episode'),
         podcastGuid: this.attr('podcast-guid') ?? this.podcastGuid,
-        url: this.attr('url') ?? (/^https?:/.test(location.href) ? location.href : undefined),
+        url: this.attr('url') ?? publicPageUrl(),
         relays: this.relays(),
       },
       pending,
@@ -443,13 +446,13 @@ export class CashuBoost extends HTMLElement {
       <label for="from">Your name <span class="opt">(optional)</span></label>
       <input id="from" data-field="sender" placeholder="Anonymous" value="${esc(this.sender)}">
       ${nip07() ? `<label class="check"><input type="checkbox" data-field="nostr" ${this.useNostrId ? 'checked' : ''}> Sign with my Nostr identity (otherwise anonymous)</label>` : ''}
-      <details ${lines.length > 1 ? 'open' : ''}><summary>Where your ${fmt(this.amount)} sats go</summary><ul class="splits">
+      <details ${lines.length > 1 && !this.hasAttribute('compact') ? 'open' : ''}><summary>Where your ${fmt(this.amount)} sats go</summary><ul class="splits">
         ${lines.map((l) => `<li><span>${esc(l.recipient.name)}${l.recipient.unsupported ? `<br><span class="note">${esc(l.recipient.unsupported)}</span>` : ''}</span>
           <span>${l.rail === 'none' ? '' : fmt(l.amount) + ' sats '}<span class="badge ${l.rail}">${RAIL_LABEL[l.rail]}</span></span></li>`).join('')}
       </ul>${mint ? `<div class="note pad">Mint: ${esc(new URL(mint).host)}. Mint and routing fees, if any, come out of the last share.</div>` : ''}</details>
       ${payable ? `<button class="primary" data-act="invoice">Boost ${fmt(this.amount)} sats ⚡</button>
       <div class="row mt8"><button class="ghost" data-act="token">Pay with ecash instead</button></div>
-      <div class="note center"><a href="https://cashu.space/wallets" target="_blank" rel="noopener">No wallet yet? Get one in a minute →</a></div>`
+      <div class="note center wallet-note"><a href="https://cashu.space/wallets" target="_blank" rel="noopener">No wallet yet? Get one in a minute →</a></div>`
       : `<div class="err">None of these recipients can receive Cashu yet.</div>`}
       ${this.error ? `<div class="err">${esc(this.error)}</div>` : ''}`;
   }

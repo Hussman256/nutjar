@@ -6,6 +6,7 @@ import type { Event } from 'nostr-tools/pure';
 import { DEFAULT_RELAYS, KIND_NUTZAP, KIND_NUTZAP_INFO, KIND_WALLET, getPool, normalizeMint } from './nostr';
 import { fromWire, sum, type WireProof } from './proofs';
 import { getInvoice, getPayInfo } from './lnurl';
+import { publicHttpsUrl } from './links';
 
 export interface Nutzap {
   id: string;
@@ -50,7 +51,7 @@ export function parseNutzap(ev: Event): Nutzap | null {
     createdAt: ev.created_at,
     episodeGuid: is.find((i) => i.startsWith('podcast:item:guid:'))?.slice('podcast:item:guid:'.length),
     podcastGuid: is.find((i) => i.startsWith('podcast:guid:'))?.slice('podcast:guid:'.length),
-    url: get('r'),
+    url: publicHttpsUrl(get('r')), // a localhost or private address would just be a dead link
   };
 }
 

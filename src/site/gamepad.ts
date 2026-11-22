@@ -128,6 +128,11 @@ export function buildPad(widget: HTMLElement): HTMLElement {
 /** Bring a console to life: sound, vibration, power meter, hold-to-repeat, keyboard, celebration. */
 export function enhancePad(pad: HTMLElement, widgetEl: HTMLElement, opts: { name?: () => string } = {}) {
   const w = widgetEl as BoostEl;
+  // Small phones: trim the widget (the keys already set the amount) so screen and keys fit together.
+  const small = matchMedia('(max-width: 560px)');
+  const fit = () => w.toggleAttribute('compact', small.matches);
+  fit();
+  small.addEventListener('change', fit);
   const screen = pad.querySelector<HTMLElement>('.console-screen')!;
   const key = (k: string) => pad.querySelector<HTMLButtonElement>(`[data-k="${k}"]`)!;
 
