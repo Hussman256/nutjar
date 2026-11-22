@@ -144,16 +144,16 @@ https://mint.coinos.io</textarea>
           <p id="collect-err" class="err"></p>
 
           <div id="collected" class="hidden">
-            <details class="take-out">
-              <summary>Take your sats out</summary>
+            <details class="take-out" id="take-out">
+              <summary><span>Take your sats out<small id="take-sub">Move them to your own wallet</small></span><i class="take-arrow" aria-hidden="true">↓</i></summary>
               <div class="take-grid">
                 <div class="take-opt">
-                  <h4>To a Cashu wallet</h4>
+                  <h4><span class="take-ico">🥜</span>To a Cashu wallet</h4>
                   <p class="small muted">Minibits, cashu.me, eNuts… Free and instant.</p>
                   <div id="tokens"></div>
                 </div>
                 <div class="take-opt">
-                  <h4>To a Lightning address</h4>
+                  <h4><span class="take-ico ln">⚡</span>To a Lightning address</h4>
                   <p class="small muted">Any wallet with an address. A few sats go to fees.</p>
                   <div class="row"><input id="ln" placeholder="you@minibits.cash" style="flex:1;min-width:0"><button id="btn-melt">Send</button></div>
                   <p id="melt-out" class="small"></p>

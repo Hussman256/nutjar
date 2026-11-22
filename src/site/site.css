@@ -123,6 +123,7 @@ details summary { cursor: pointer; }
 .jar-card { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 28px; align-items: center; background: var(--card); border: var(--edge); border-radius: 28px; padding: 24px 28px; box-shadow: 6px 6px 0 var(--ink); position: relative; overflow: hidden; }
 .jar-card::before { content: ""; position: absolute; inset: auto -60px -90px auto; width: 260px; height: 260px; border-radius: 50%; background: color-mix(in srgb, var(--gold) 30%, transparent); pointer-events: none; }
 .jar-art { display: grid; place-items: center; }
+.jar-card > *, .jar-body > * { position: relative; z-index: 1; } /* above the decorative circle */
 .jar-mini { width: 100%; max-width: 190px; height: auto; overflow: visible; }
 .jar-nuts { transform: translateY(calc((1 - var(--fill, 0)) * 230px)); transition: transform 1.2s cubic-bezier(.2, .9, .3, 1.15); }
 .jar-card .drop { animation: none; opacity: 0; }
@@ -137,12 +138,26 @@ details summary { cursor: pointer; }
 .collect-strip.has-new #btn-collect { animation: nudge 1.8s ease-in-out infinite; }
 @keyframes nudge { 0%, 70%, 100% { transform: none; } 80% { transform: rotate(-3deg) scale(1.04); } 90% { transform: rotate(3deg) scale(1.04); } }
 .take-out { margin-top: 16px; }
-.take-out > summary { font: 750 16px var(--display); letter-spacing: -.01em; list-style: none; display: inline-flex; align-items: center; gap: 8px; }
+/* "Take your sats out": a real button with a bobbing arrow; quiet when the jar is empty */
+.take-out > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 14px 14px 18px; border-radius: 16px; background: var(--ink); color: var(--paper); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--pop); font: 750 17px/1.15 var(--display); letter-spacing: -.01em; transition: transform .12s, box-shadow .12s, background .2s, color .2s; -webkit-user-select: none; user-select: none; }
+.take-out > summary small { display: block; margin-top: 3px; font: 500 13px var(--body); letter-spacing: 0; opacity: .7; }
+.take-out > summary:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--pop); }
+.take-out > summary:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pop); }
+.take-arrow { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--gold); color: #1d140c; border: 2px solid var(--paper); font: 900 19px/1 var(--body); font-style: normal; transition: transform .3s cubic-bezier(.2, .9, .3, 1.3); }
+.take-out:not([open]):not(.empty) .take-arrow { animation: bob 1.6s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(4px); } }
+.take-out[open] > summary { background: var(--card); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+.take-out[open] .take-arrow { transform: rotate(180deg); border-color: var(--ink); }
+.take-out.empty > summary { opacity: .55; box-shadow: none; }
+.take-out[open] .take-grid { animation: rise .3s cubic-bezier(.2, .9, .3, 1) both; }
+.take-out[open] .take-opt:nth-child(2) { animation: rise .3s .06s cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.take-ico { display: inline-grid; place-items: center; width: 30px; height: 30px; margin-right: 8px; border-radius: 9px; background: var(--gold); border: 2px solid var(--ink); font-size: 15px; vertical-align: -8px; }
+.take-ico.ln { background: #ffe08a; }
 .take-out > summary::-webkit-details-marker { display: none; }
-.take-out > summary::after { content: "↓"; font-size: 15px; transition: transform .2s; }
-.take-out[open] > summary::after { transform: rotate(180deg); }
 .take-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-top: 12px; }
-.take-opt { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 14px; min-width: 0; }
+.take-opt { background: var(--paper); border: 2px solid var(--line); border-radius: 16px; padding: 14px; min-width: 0; }
+.take-opt h4 { display: flex; align-items: center; }
 .take-opt h4 { margin: 0 0 2px; font: 750 15px var(--display); }
 .take-opt p { margin: 0 0 10px; }
 .mint-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -443,7 +458,6 @@ html:not(.app-mode) .acct-panel, html:not(.app-mode) .more-links { display: none
 .app-mode .jar-note { margin: 8px 0 14px; }
 .app-mode .collect-strip { flex-direction: column; align-items: stretch; text-align: center; padding: 16px; }
 .app-mode .collect-strip button { width: 100%; font-size: 17px; padding: 14px; }
-.app-mode .take-out > summary { padding: 6px 0; }
 
 /* the bottom tab bar */
 .app-mode.in-main .tabbar { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; height: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); padding: 6px 8px env(safe-area-inset-bottom); background: color-mix(in srgb, var(--card) 94%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: var(--edge); }
