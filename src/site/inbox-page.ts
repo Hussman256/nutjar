@@ -109,8 +109,34 @@ async function deleteTokens(ids: string[]) {
 
 const keptKey = (k: Kept) => k.proofs.map((p) => p.secret).join(',');
 
+/**
+ * Drop stale backup copies on this device: proofs that are already in a token event on Nostr, or that
+ * the mint says are spent (cashed out, moved to a wallet). Without this, a backup kept when the signer
+ * declined a save lingers as "sats saved on this device only" after the money has left.
+ */
+async function pruneKept(): Promise<void> {
+  const onNostr = new Set(liveTokens().flatMap((t) => t.proofs.map((p) => p.secret)));
+  const start = kept();
+  const next: Kept[] = [];
+  for (const k of start) {
+    let proofs = k.proofs.filter((p) => !onNostr.has(p.secret));
+    if (proofs.length) {
+      try {
+        proofs = await unspent(k.mint, proofs);
+      } catch {
+        /* mint unreachable: keep the copy, check again next time */
+      }
+    }
+    if (proofs.length) next.push({ ...k, proofs, amount: sumWire(proofs) });
+  }
+  // Re-read before writing: a Collect may have added new ecash meanwhile. Only replace what we checked.
+  const checked = new Set(start.map(keptKey));
+  saveKept([...next, ...kept().filter((k) => !checked.has(keptKey(k)))]);
+}
+
 /** Push anything still only on this device up to the relays. */
 async function doSyncLocal(): Promise<void> {
+  await pruneKept();
   for (const k of kept()) {
     try {
       const ev = await saveToken(k.mint, k.proofs);
@@ -137,6 +163,8 @@ async function loadBalance(): Promise<void> {
   balanceState = 'loading';
   renderBalance();
   try {
+    await pruneKept().catch(() => {}); // spent backups go first, even if the signer later declines
+    renderBalance();
     const { tokens: evs, deleted } = await fetchWalletEvents(me, relays);
     if (evs.length && signer.kind === 'remote') $('balance-note').textContent = `Approve ${evs.length} decrypt request(s) in your signer app to show your balance…`;
     tokens = await readTokens(signer, me, evs, deleted);
@@ -541,6 +569,7 @@ $('btn-melt').addEventListener('click', async () => {
   }
   $('melt-out').innerHTML = msgs.join('<br>') || 'Nothing to send.';
   btn.disabled = false;
+  await pruneKept().catch(() => {}); // a backup of what was just spent must not linger
   renderBalance();
 });
 
