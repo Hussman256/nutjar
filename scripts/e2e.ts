@@ -162,5 +162,23 @@ console.log('\nNIP-60 balance storage');
   check((await unspent(MINT, minted)).length === minted.length, "unspent proofs are kept");
 }
 
+// Flaky network while waiting for payment: status checks fail twice, then minting fails once.
+// The wait must ride it out instead of giving up (a fan's connection dropping mid-boost).
+{
+  const real = await loadWallet(MINT);
+  let checkFails = 2;
+  let mintFails = 1;
+  const flaky = Object.assign(Object.create(real), {
+    mint: real.mint,
+    createMintQuoteBolt11: real.createMintQuoteBolt11.bind(real),
+    checkMintQuoteBolt11: (id: string) => (checkFails-- > 0 ? Promise.reject(new TypeError('Failed to fetch')) : real.checkMintQuoteBolt11(id)),
+    mintProofsBolt11: (amt: number, id: string) => (mintFails-- > 0 ? Promise.reject(new TypeError('Failed to fetch')) : real.mintProofsBolt11(amt, id)),
+  }) as typeof real;
+  const f = await fundWithInvoice(flaky, 21, 'e2e flaky network');
+  const t0 = Date.now();
+  const proofs = await f.wait().catch((e) => (console.log('  wait threw:', e?.message), []));
+  check(sum(proofs) === 21, `payment wait survives dropped connections (2 failed checks + 1 failed mint, ${((Date.now() - t0) / 1000).toFixed(1)} s)`);
+}
+
 console.log(failures ? `\n${failures} check(s) failed` : '\nAll checks passed');
 process.exit(failures ? 1 : 0);

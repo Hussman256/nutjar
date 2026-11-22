@@ -130,6 +130,27 @@ export interface InvoiceFunding {
   pending: PendingBoost;
 }
 
+const sleep = (ms: number, signal?: AbortSignal) =>
+  new Promise<void>((resolve, reject) => {
+    const t = setTimeout(resolve, ms);
+    signal?.addEventListener('abort', () => (clearTimeout(t), reject(new DOMException('Cancelled', 'AbortError'))), { once: true });
+  });
+
+/** Only errors where the request may never have reached the mint are safe to retry blindly. */
+const isNetworkError = (e: unknown) => e instanceof TypeError || /fetch|network|timeout|timed out|ECONN|socket/i.test(String((e as Error)?.message ?? e));
+
+/** The invoice is paid: turn it into ecash, riding out short network drops (up to ~1 minute). */
+async function mintWithRetry(wallet: Wallet, amount: number, quoteId: string, signal?: AbortSignal): Promise<Proof[]> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await wallet.mintProofsBolt11(amount, quoteId);
+    } catch (e) {
+      if (!isNetworkError(e) || attempt >= 8) throw e;
+      await sleep(Math.min(2000 * 1.5 ** attempt, 15_000), signal);
+    }
+  }
+}
+
 export async function fundWithInvoice(wallet: Wallet, amount: number, description: string): Promise<InvoiceFunding> {
   const quote = await wallet.createMintQuoteBolt11(amount, description);
   const pending: PendingBoost = {
@@ -144,16 +165,27 @@ export async function fundWithInvoice(wallet: Wallet, amount: number, descriptio
   return {
     invoice: quote.request,
     pending,
+    // A fan's phone or Wi-Fi drops for a moment, or the mint hiccups: keep checking with growing
+    // pauses (2 s up to 15 s) instead of giving up while the fan may be paying. The pending record
+    // stays saved the whole time, so even a closed tab can get the sats back later.
     wait: async (signal) => {
+      let pause = 2000;
       for (;;) {
         if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
-        const q = await wallet.checkMintQuoteBolt11(quote.quote);
-        if (q.state === MintQuoteState.PAID || q.state === MintQuoteState.ISSUED) {
-          const proofs = await wallet.mintProofsBolt11(amount, quote.quote);
+        let q: Awaited<ReturnType<Wallet['checkMintQuoteBolt11']>> | undefined;
+        try {
+          q = await wallet.checkMintQuoteBolt11(quote.quote);
+        } catch {
+          q = undefined; // network or mint error: try again after the pause
+        }
+        if (q && (q.state === MintQuoteState.PAID || q.state === MintQuoteState.ISSUED)) {
+          const proofs = await mintWithRetry(wallet, amount, quote.quote, signal);
           savePending({ ...pending, quote: undefined, proofs: proofs.map(toWire) });
           return proofs;
         }
-        await new Promise((r) => setTimeout(r, 2000));
+        if (q && q.expiry && q.expiry * 1000 < Date.now()) throw new Error('This invoice expired before it was paid. Start a new boost.');
+        pause = q ? 2000 : Math.min(pause * 1.5, 15_000);
+        await sleep(pause, signal);
       }
     },
   };
