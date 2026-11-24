@@ -2,7 +2,7 @@ import './pwa';
 import '../widget/cashu-boost';
 import { fetchFeedText, parseFeed, recipientsFor, type ParsedFeed } from '../lib/feed';
 import { esc } from './zaplist';
-import { episodeLink } from '../lib/links';
+import { episodeLink, shortShowName } from '../lib/links';
 import QRCode from 'qrcode';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -28,7 +28,7 @@ function attrs(): Record<string, string> {
   const ep = feed?.episodes.find((e) => e.guid === val('episode'));
   const label = val('label') || (mode === 'feed' ? ep?.title ?? feed?.title ?? '' : '');
   if (label) a.label = label;
-  const name = val('name') || (mode === 'feed' ? feed?.title ?? '' : '');
+  const name = val('name') || (mode === 'feed' && feed ? shortShowName(feed.title) : '');
   if (name) a.name = name;
   if (val('mint')) a.mint = val('mint');
   if (val('amounts') && val('amounts') !== '21,100,500,2100') a.amounts = val('amounts');
