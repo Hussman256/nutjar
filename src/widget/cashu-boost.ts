@@ -30,7 +30,7 @@ import {
   type RecipientInput,
 } from '../lib/boost';
 import { fetchFeed, recipientsFor } from '../lib/feed';
-import { publicHttpsUrl } from '../lib/links';
+import { publicHttpsUrl, shortShowName } from '../lib/links';
 import { DEFAULT_RELAYS, ephemeralSigner, extensionSigner, fetchProfileName, nip05Pubkey, nip07, toHexPubkey } from '../lib/nostr';
 import { listPending, removePending, savePending, type PendingBoost } from '../lib/pending';
 import { fromWire, sum, toWire } from '../lib/proofs';
@@ -38,13 +38,6 @@ import { fromWire, sum, toWire } from '../lib/proofs';
 type View = 'loading' | 'form' | 'invoice' | 'token' | 'sending' | 'done' | 'fatal';
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-/** "Nodesignal - Deine Bitcoin-Frequenz" -> "Nodesignal": the show's name without its tagline. */
-const shortShowName = (title: string): string | undefined => {
-  const t = title.trim();
-  if (!t) return undefined;
-  const head = t.split(/\s+[-–—|:]\s+/)[0].trim();
-  return (head.length >= 2 ? head : t).slice(0, 60);
-};
 /** The page the boost came from (public https pages only), so creators see where fans found them. */
 const publicPageUrl = () => publicHttpsUrl(location.href);
 const fmt = (n: number) => n.toLocaleString('en-US');

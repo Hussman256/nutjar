@@ -62,3 +62,21 @@ export function publicHttpsUrl(raw: string | undefined): string | undefined {
     return undefined;
   }
 }
+
+/**
+ * A boost link for one podcast episode: /b/?feed=…&episode=… opens a ready boost page that pays the
+ * episode's own <podcast:value> splits. Without an episode it boosts the show (channel splits).
+ */
+export function episodeLink(root: string, feed: string, episode?: string, opts: { skin?: string } = {}): string {
+  const q = new URLSearchParams({ feed });
+  if (episode) q.set('episode', episode);
+  if (opts.skin) q.set('skin', opts.skin);
+  return new URL(`b/?${q}`, root).href;
+}
+
+/** "Nodesignal - Deine Bitcoin-Frequenz" -> "Nodesignal": the show's name without its tagline. */
+export function shortShowName(title: string): string {
+  const t = title.trim();
+  const head = t.split(/\s+[-–—|:]\s+/)[0].trim();
+  return (head.length >= 2 ? head : t).slice(0, 60);
+}

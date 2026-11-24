@@ -3,7 +3,8 @@ import './pwa';
 import '../widget/cashu-boost';
 import QRCode from 'qrcode';
 import { buildPad, enhancePad } from './gamepad';
-import { boostLink, fromPath } from '../lib/links';
+import { boostLink, fromPath, shortShowName } from '../lib/links';
+import { fetchFeed, recipientsFor } from '../lib/feed';
 import { DEFAULT_RELAYS, getPool, nip05Pubkey, npub as toNpub, toHexPubkey } from '../lib/nostr';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -95,6 +96,46 @@ async function creatorPage() {
   document.title = `Boost ${name} · Nutjar`;
 }
 
+/**
+ * An episode boost link: /b/?feed=<rss>&episode=<guid>. The page shows the show's cover art, its name and
+ * the episode, and the widget pays that episode's own <podcast:value> splits. No episode: the whole show.
+ */
+async function podcastPage(feedUrl: string) {
+  const episode = params.get('episode') ?? undefined;
+  $('page').classList.remove('hidden');
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('a[href="./"]')) a.href = new URL('b/', root).href;
+
+  const w = document.createElement('cashu-boost');
+  w.setAttribute('feed', feedUrl);
+  if (episode) w.setAttribute('episode', episode);
+  for (const k of ['label', 'amounts', 'mint', 'skin', 'theme']) {
+    const v = params.get(k);
+    if (v) w.setAttribute(k, v);
+  }
+  if (params.get('skin') === 'gamepad') gamePad(w);
+  else $('p-widget').append(w);
+
+  $('p-name').textContent = 'Loading the show…';
+  try {
+    const feed = await fetchFeed(feedUrl, episode);
+    const show = shortShowName(feed.title) || 'this show';
+    const ep = episode ? feed.episodes.find((e) => e.guid === episode) : undefined;
+    $('p-name').textContent = show;
+    $('p-handle').textContent = ep ? ep.title : episode ? 'Episode not found in the feed: boosting the show' : 'The whole show';
+    const rs = recipientsFor(feed, ep?.guid).filter((r) => r.split > 0);
+    const total = rs.reduce((t, r) => t + r.split, 0) || 1;
+    $('p-about').textContent = rs.length
+      ? `Your boost is split the way this show's feed says: ${rs.map((r) => `${r.name.trim()} ${Math.round((r.split / total) * 100)}%`).join(' · ')}.`
+      : "This show's feed doesn't list anyone to pay yet.";
+    showImg('p-avatar-img', feed.image);
+    showImg('p-banner-img', feed.image);
+    document.title = `Boost ${show}${ep ? `: ${ep.title}` : ''} · Nutjar`;
+  } catch (e) {
+    $('p-name').textContent = 'Podcast';
+    $('p-about').textContent = `Couldn't load this podcast's feed (${(e as Error).message}).`;
+  }
+}
+
 /** The NUTJAR BOY handheld around the real boost button (see gamepad.ts). */
 function gamePad(w: HTMLElement) {
   w.setAttribute('skin', 'arcade');
@@ -158,5 +199,6 @@ function maker() {
   update();
 }
 
-if (params.get('npub') || params.get('to') || short) creatorPage();
+if (params.get('feed')) void podcastPage(params.get('feed')!);
+else if (params.get('npub') || params.get('to') || short) creatorPage();
 else maker();

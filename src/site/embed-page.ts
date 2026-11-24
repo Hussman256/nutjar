@@ -2,6 +2,8 @@ import './pwa';
 import '../widget/cashu-boost';
 import { fetchFeedText, parseFeed, recipientsFor, type ParsedFeed } from '../lib/feed';
 import { esc } from './zaplist';
+import { episodeLink } from '../lib/links';
+import QRCode from 'qrcode';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const val = (id: string) => ($<HTMLInputElement>(id).value ?? '').trim();
@@ -106,3 +108,29 @@ $('episode').addEventListener('change', () => {
 for (const id of ['npub', 'lnaddress', 'creq', 'label', 'name', 'mint', 'amounts', 'accent', 'theme', 'skin']) $(id).addEventListener('input', schedule);
 $('btn-copy').addEventListener('click', () => navigator.clipboard?.writeText($('code').textContent ?? ''));
 update();
+
+// ---------- episode boost link: a shareable page for one episode, no website needed ----------
+// Only for feeds loaded from a URL (a pasted XML has no address the boost page could load).
+let loadedFeedUrl = '';
+$('btn-feed').addEventListener('click', () => (loadedFeedUrl = val('feed')));
+$('btn-xml').addEventListener('click', () => (loadedFeedUrl = ''));
+
+let epLink = '';
+async function updateEpisodeLink() {
+  const on = val('mode') === 'feed' && !!feed && !!loadedFeedUrl && /^https?:\/\//i.test(loadedFeedUrl);
+  $('ep-panel').classList.toggle('hidden', !on);
+  if (!on) return;
+  const site = new URL('./', location.href).href;
+  epLink = episodeLink(site, loadedFeedUrl, val('episode') || undefined, { skin: val('skin') === 'arcade' ? 'arcade' : undefined });
+  $('ep-link').textContent = epLink;
+  $<HTMLAnchorElement>('ep-open').href = epLink;
+  $('ep-qr').innerHTML = await QRCode.toString(epLink, { type: 'svg', margin: 1 });
+}
+for (const id of ['mode', 'episode', 'skin']) $(id).addEventListener('change', () => void updateEpisodeLink());
+// The feed loads asynchronously: refresh the link whenever the status line changes (loaded, failed).
+new MutationObserver(() => void updateEpisodeLink()).observe($('feed-status'), { childList: true, characterData: true, subtree: true });
+$('ep-copy').addEventListener('click', async () => {
+  await navigator.clipboard?.writeText(epLink);
+  $('ep-copy').textContent = 'Copied!';
+  setTimeout(() => ($('ep-copy').textContent = 'Copy link'), 1500);
+});

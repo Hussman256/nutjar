@@ -52,7 +52,7 @@ So every boost through the main route mints new ecash and puts it to real use, a
 
 Works on any page: the widget lives in shadow DOM, so your theme's CSS can't break it. If your site sends a strict Content-Security-Policy, allow `script-src https://nutjar.vercel.app` and `connect-src https: wss:` (the widget talks to the Cashu mint, Nostr relays and Lightning address servers straight from the fan's browser). No inline styles needed. With `feed="…"`, feeds whose host blocks cross-site reads are fetched through a small relay on nutjar.vercel.app (`/api/feed`, RSS only).
 
-No site? Use a boost link: `https://nutjar.vercel.app/<npub or Lightning address>`, add `?skin=gamepad` for the game pad.
+No site? Use a boost link: `https://nutjar.vercel.app/<npub or Lightning address>`, add `?skin=gamepad` for the game pad. Podcasters can share one episode with its splits, no website needed: `https://nutjar.vercel.app/b/?feed=<RSS URL>&episode=<guid>` (the embed builder makes these, with a QR code).
 
 ## What's in the box
 
