@@ -2,15 +2,15 @@
 
 **A tip jar for creators, paid in Cashu ecash.** Any fan can boost a creator, especially a podcaster, with sats and a message, from the Lightning wallet they already use. The boost is split fairly between everyone who made the work. There's nothing for the fan to sign up for and nothing for the creator to run.
 
-Built for [Nut November](https://nutnovember.org), **Value4Value track**. **Live: https://nutjar.vercel.app**
+Built for [Nut November](https://nutnovember.org), **Value4Value track**. **Live: https://nutjar.xyz**
 
 ![Nutjar](public/og.png)
 
 ## Try it in 60 seconds
 
-1. **Boost someone (fake sats, no wallet needed).** Open https://nutjar.vercel.app and use the live demo. It runs on the testnut mint and the invoice pays itself. Turn on the sound 🔊, hold ▶ on the NUTJAR BOY game pad, press ⚡, and watch the boost land, split between two demo creators, in their inbox right next to it.
-2. **Make a boost link.** https://nutjar.vercel.app/b/ → paste an npub or a Lightning address → you get a short link like `nutjar.vercel.app/you@getalby.com` (or `/npub1…`), with a QR code. Pick the game pad style if you like.
-3. **Be the creator.** https://nutjar.vercel.app/inbox.html → sign in with Amber (Android), nsec.app or a browser extension. Nutjar never sees your key. Set up receiving once, then read boosts, collect them into your jar, and move them to any Cashu wallet or a Lightning address.
+1. **Boost someone (fake sats, no wallet needed).** Open https://nutjar.xyz and use the live demo. It runs on the testnut mint and the invoice pays itself. Turn on the sound 🔊, hold ▶ on the NUTJAR BOY game pad, press ⚡, and watch the boost land, split between two demo creators, in their inbox right next to it.
+2. **Make a boost link.** https://nutjar.xyz/b/ → paste an npub or a Lightning address → you get a short link like `nutjar.xyz/you@getalby.com` (or `/npub1…`), with a QR code. Pick the game pad style if you like.
+3. **Be the creator.** https://nutjar.xyz/inbox.html → sign in with Amber (Android), nsec.app or a browser extension. Nutjar never sees your key. Set up receiving once, then read boosts, collect them into your jar, and move them to any Cashu wallet or a Lightning address.
 
 ## The problem
 
@@ -46,13 +46,13 @@ So every boost through the main route mints new ecash and puts it to real use, a
 ## Add it to a site
 
 ```html
-<script src="https://nutjar.vercel.app/nutjar.js" defer></script>
+<script src="https://nutjar.xyz/nutjar.js" defer></script>
 <cashu-boost npub="npub1…" lnaddress="you@getalby.com" label="Episode 42"></cashu-boost>
 ```
 
-Works on any page: the widget lives in shadow DOM, so your theme's CSS can't break it. If your site sends a strict Content-Security-Policy, allow `script-src https://nutjar.vercel.app` and `connect-src https: wss:` (the widget talks to the Cashu mint, Nostr relays and Lightning address servers straight from the fan's browser). No inline styles needed. With `feed="…"`, feeds whose host blocks cross-site reads are fetched through a small relay on nutjar.vercel.app (`/api/feed`, RSS only).
+Works on any page: the widget lives in shadow DOM, so your theme's CSS can't break it. If your site sends a strict Content-Security-Policy, allow `script-src https://nutjar.xyz` and `connect-src https: wss:` (the widget talks to the Cashu mint, Nostr relays and Lightning address servers straight from the fan's browser). No inline styles needed. With `feed="…"`, feeds whose host blocks cross-site reads are fetched through a small relay on nutjar.xyz (`/api/feed`, RSS only).
 
-No site? Use a boost link: `https://nutjar.vercel.app/<npub or Lightning address>`, add `?skin=gamepad` for the game pad. Podcasters can share one episode with its splits, no website needed: `https://nutjar.vercel.app/b/?feed=<RSS URL>&episode=<guid>` (the embed builder makes these, with a QR code).
+No site? Use a boost link: `https://nutjar.xyz/<npub or Lightning address>`, add `?skin=gamepad` for the game pad. Podcasters can share one episode with its splits, no website needed: `https://nutjar.xyz/b/?feed=<RSS URL>&episode=<guid>` (the embed builder makes these, with a QR code).
 
 ## What's in the box
 

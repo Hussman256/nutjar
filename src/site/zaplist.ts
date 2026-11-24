@@ -20,7 +20,7 @@ const STATE: Record<string, [string, string]> = {
 const AV = ['#ffc23d', '#ff8a6b', '#9ad0ff', '#b7e4a1', '#e2b071', '#d7b8ff'];
 
 /** Nutjar's own sites (now and before the move to Vercel): boosts from there came through a boost link. */
-const OWN_HOSTS = new Set(['nutjar.vercel.app', 'hussman256.github.io']);
+const OWN_HOSTS = new Set(['nutjar.xyz', 'www.nutjar.xyz', 'nutjar.vercel.app', 'hussman256.github.io']);
 
 /** Where a boost came from: "via boost link" for Nutjar's own pages, the site's name for embeds elsewhere. */
 function whereHtml(url?: string): string {

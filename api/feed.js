@@ -75,7 +75,7 @@ export default async function handler(req, res) {
       upstream = await fetch(url, {
         redirect: 'manual',
         signal: ctrl.signal,
-        headers: { 'User-Agent': 'Nutjar feed relay (+https://nutjar.vercel.app)', Accept: 'application/rss+xml, application/xml, text/xml, */*' },
+        headers: { 'User-Agent': 'Nutjar feed relay (+https://nutjar.xyz)', Accept: 'application/rss+xml, application/xml, text/xml, */*' },
       });
       const loc = upstream.headers.get('location');
       if (upstream.status >= 300 && upstream.status < 400 && loc) {

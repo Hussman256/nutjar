@@ -92,7 +92,7 @@ export function recipientsFor(feed: ParsedFeed, guid?: string): FeedRecipient[] 
 // Where the feed relay lives: next to the nutjar.js that was loaded (read while the script runs),
 // or the main site when this code runs as part of our own pages.
 const scriptSrc = typeof document !== 'undefined' ? (document.currentScript as HTMLScriptElement | null)?.src : undefined;
-const FEED_RELAY = new URL('/api/feed', scriptSrc && /^https?:/.test(scriptSrc) ? scriptSrc : 'https://nutjar.vercel.app').href;
+const FEED_RELAY = new URL('/api/feed', scriptSrc && /^https?:/.test(scriptSrc) ? scriptSrc : 'https://nutjar.xyz').href;
 
 /**
  * Load a podcast feed. Straight from the host first; many hosts don't allow other sites to read

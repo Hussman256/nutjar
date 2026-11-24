@@ -1,5 +1,5 @@
-// Boost links. On the main site they are short: nutjar.vercel.app/you@getalby.com or
-// nutjar.vercel.app/npub1… (vercel.json rewrites those paths to the boost page). Hosts without that
+// Boost links. On the main site they are short: nutjar.xyz/you@getalby.com or
+// nutjar.xyz/npub1… (vercel.json rewrites those paths to the boost page). Hosts without that
 // rewrite (GitHub Pages, the local dev server) get the long form, /b/?to=…, which works everywhere.
 
 export interface LinkParts {
@@ -16,7 +16,7 @@ export function shortLinksWork(hostname = location.hostname): boolean {
   return !NO_REWRITES.test(hostname);
 }
 
-/** A boost link for a creator. `root` is the site root, e.g. https://nutjar.vercel.app/ */
+/** A boost link for a creator. `root` is the site root, e.g. https://nutjar.xyz/ */
 export function boostLink(root: string, p: LinkParts, short = shortLinksWork(new URL(root).hostname)): string {
   const q = new URLSearchParams();
   const id = p.npub || p.to;
